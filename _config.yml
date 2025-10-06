@@ -1,0 +1,16 @@
+name: Elca Theme
+description: A clean Jekyll theme
+baseurl: ""
+url: ""
+markdown: kramdown
+
+# Theme settings
+title: Your Site Title
+description: Your site description here
+author: Your Name
+
+# Build settings
+theme: elca
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
