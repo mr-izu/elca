@@ -5,9 +5,9 @@ url: ""
 markdown: kramdown
 
 # Theme settings
-title: Your Site Title
-description: Your site description here
-author: Your Name
+title: Elca
+description: The Ultimate Doc
+author: Izumie
 
 # Build settings
 theme: elca
