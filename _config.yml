@@ -1,0 +1,20 @@
+title: "ELCA Theme"
+description: "A simple Jekyll theme"
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
+theme: elca
+
+# Theme settings
+header_pages:
+  - index.html
+  - about.md
+
+# Navigation
+nav_links:
+  - title: Home
+    url: /
+  - title: About
+    url: /about
