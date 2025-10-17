@@ -1,19 +1,38 @@
-title: "ELCA Theme"
-description: "A simple Jekyll theme"
-baseurl: ""
-url: ""
+# Site title and description
+title: "Your Site Title"
+title_short: "YST" # Short version for header
+description: "Your site description"
+keywords: "your,keywords,here"
+author: "Your Name"
 
-# Build settings
-markdown: kramdown
+# Logo (optional)
+logo: "/assets/images/logo.png" # Path to your logo
 
-# Theme settings
-header_pages:
-  - index.html
-  - about.md
-
-# Navigation
-nav_links:
-  - title: Home
-    url: /
-  - title: About
-    url: /about
+# Navigation configuration
+navigation:
+  - title: "Home"
+    url: "/"
+  
+  - title: "Community"
+    url: "/community/"
+    dropdown:
+      - title: "About Us"
+        url: "/about/"
+      - title: "Join Community"
+        url: "/join/"
+      - title: "Features & Products"
+        url: "/features/"
+      - title: "Community Survey"
+        url: "/survey/"
+  
+  - title: "What We Support"
+    url: "/support/"
+  
+  - title: "Terms"
+    url: "/terms/"
+  
+  - title: "Privacy"
+    url: "/privacy/"
+  
+  - title: "Report"
+    url: "/report/"
