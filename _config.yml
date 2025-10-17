@@ -6,7 +6,7 @@ keywords: "your,keywords,here"
 author: "Your Name"
 
 # Logo (optional)
-logo: "/assets/images/logo.png" # Path to your logo
+logo: "https://mr-izu.github.io/logos/qxel/transparent_logo.png" # Path to your logo
 
 # Navigation configuration
 navigation:
