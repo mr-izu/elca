@@ -14,7 +14,7 @@
                     {% for link in site.navigation %}
                     {% if link.dropdown %}
                     <li class="nav-item dropdown">
-                        <a href="{{ link.url | relative_url }}" class="nav-link {% if page.url == link.url %}active{% endif %}">
+                        <a href="javascript:void(0)" class="nav-link {% if page.url == link.url %}active{% endif %}">
                             {{ link.title }} <span class="dropdown-arrow">▼</span>
                         </a>
                         <ul class="dropdown-menu">
@@ -34,6 +34,17 @@
                     {% endif %}
                     {% endfor %}
                 </ul>
+                
+                <!-- Dark Mode Toggle -->
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+                
                 <div class="hamburger">
                     <span class="bar"></span>
                     <span class="bar"></span>
@@ -45,8 +56,33 @@
 </header>
 
 <script>
-    // JavaScript for mobile navigation and interactions
+    // JavaScript for mobile navigation, dark mode, and interactions
     document.addEventListener('DOMContentLoaded', function() {
+        // Dark mode functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        // Get current theme from localStorage or system preference
+        const currentTheme = localStorage.getItem('theme') || 
+                            (prefersDarkScheme.matches ? 'dark' : 'light');
+        
+        // Apply the current theme
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        // Toggle theme function
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Theme toggle event listener
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+        
         // Mobile menu toggle
         const hamburger = document.querySelector('.hamburger');
         const navMenu = document.querySelector('.nav-menu');
@@ -60,10 +96,29 @@
             });
         }
         
-        // Handle dropdowns on mobile
+        // Handle dropdowns - prevent redirect for dropdown parents
         dropdowns.forEach(dropdown => {
             const link = dropdown.querySelector('.nav-link');
+            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
             
+            // Desktop: show on hover
+            dropdown.addEventListener('mouseenter', function() {
+                if (window.innerWidth > 768) {
+                    dropdownMenu.style.opacity = '1';
+                    dropdownMenu.style.visibility = 'visible';
+                    dropdownMenu.style.transform = 'translateY(0)';
+                }
+            });
+            
+            dropdown.addEventListener('mouseleave', function() {
+                if (window.innerWidth > 768) {
+                    dropdownMenu.style.opacity = '0';
+                    dropdownMenu.style.visibility = 'hidden';
+                    dropdownMenu.style.transform = 'translateY(10px)';
+                }
+            });
+            
+            // Mobile: toggle on click
             link.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768) {
                     e.preventDefault();
@@ -89,15 +144,30 @@
             }
         });
         
-        // Close mobile menu when clicking on a link
+        // Close mobile menu when clicking on a link (except dropdown parents)
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
+            link.addEventListener('click', (e) => {
                 if (window.innerWidth <= 768) {
-                    hamburger.classList.remove('active');
-                    navMenu.classList.remove('active');
-                    document.body.style.overflow = '';
+                    const parentDropdown = link.closest('.dropdown');
+                    if (!parentDropdown) {
+                        hamburger.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
                 }
             });
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown') && window.innerWidth > 768) {
+                dropdowns.forEach(dropdown => {
+                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                    dropdownMenu.style.opacity = '0';
+                    dropdownMenu.style.visibility = 'hidden';
+                    dropdownMenu.style.transform = 'translateY(10px)';
+                });
+            }
         });
     });
 </script>
