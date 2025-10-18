@@ -9,20 +9,26 @@
                     <span>{{ site.title_short | default: site.title }}</span>
                 </a>
             </div>
+            
             <nav class="nav">
-                <!-- Search Bar -->
-                <div class="search-container">
-                    <div class="search-box">
-                        <input type="text" id="search-input" placeholder="Search documentation..." aria-label="Search">
-                        <button class="search-button" id="search-button" aria-label="Perform search">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="search-results" id="search-results"></div>
-                </div>
+                <!-- Search Icon -->
+                <button class="search-toggle" id="searchToggle" aria-label="Search">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
 
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+
+                <!-- Navigation Menu -->
                 <ul class="nav-menu">
                     {% for link in site.navigation %}
                     {% if link.dropdown %}
@@ -46,18 +52,6 @@
                     </li>
                     {% endif %}
                     {% endfor %}
-                    
-                    <!-- Theme Toggle -->
-                    <li class="nav-item">
-                        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                            <svg class="sun-icon" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                            </svg>
-                            <svg class="moon-icon" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                            </svg>
-                        </button>
-                    </li>
                 </ul>
                 
                 <div class="hamburger">
@@ -68,15 +62,40 @@
             </nav>
         </div>
     </div>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-modal">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search documentation..." autocomplete="off">
+                    <button class="search-close" id="searchClose" aria-label="Close search">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="search-results" id="searchResults">
+                <div class="search-placeholder">
+                    <p>Type to search documentation</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </header>
 
 <script>
-    // JavaScript for search functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Search elements
-        const searchInput = document.getElementById('search-input');
-        const searchButton = document.getElementById('search-button');
-        const searchResults = document.getElementById('search-results');
+        // Search functionality
+        const searchToggle = document.getElementById('searchToggle');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchClose = document.getElementById('searchClose');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
         let searchIndex = [];
 
         // Load search index
@@ -92,21 +111,35 @@
                 })
                 .catch(error => {
                     console.error('Error loading search index:', error);
-                    searchResults.innerHTML = '<div class="search-error">Search temporarily unavailable</div>';
+                    showSearchError();
                 });
+        }
+
+        // Toggle search overlay
+        function openSearch() {
+            searchOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            searchInput.focus();
+        }
+
+        function closeSearch() {
+            searchOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            searchInput.value = '';
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
         }
 
         // Perform search
         function performSearch(query) {
             if (!query.trim() || searchIndex.length === 0) {
-                searchResults.classList.remove('active');
+                searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
                 return;
             }
 
             const results = searchIndex.filter(item => {
-                const searchableText = (item.title + ' ' + item.content + ' ' + (item.tags || '')).toLowerCase();
+                const searchableText = (item.title + ' ' + item.content + ' ' + (item.tags || '') + ' ' + (item.categories || '')).toLowerCase();
                 return searchableText.includes(query.toLowerCase());
-            }).slice(0, 8); // Limit to 8 results
+            }).slice(0, 10); // Limit to 10 results
 
             displayResults(results, query);
         }
@@ -118,24 +151,25 @@
             } else {
                 let html = '<div class="search-results-list">';
                 results.forEach(result => {
-                    // Highlight matching text in title and excerpt
                     const title = highlightText(result.title, query);
                     const excerpt = highlightText(result.excerpt, query);
                     
                     html += `
-                        <div class="search-result-item">
-                            <a href="${result.url}" class="search-result-link">
+                        <a href="${result.url}" class="search-result-item">
+                            <div class="search-result-content">
                                 <div class="search-result-title">${title}</div>
                                 <div class="search-result-excerpt">${excerpt}</div>
                                 <div class="search-result-url">${result.url}</div>
-                            </a>
-                        </div>
+                            </div>
+                            <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </a>
                     `;
                 });
                 html += '</div>';
                 searchResults.innerHTML = html;
             }
-            searchResults.classList.add('active');
         }
 
         // Highlight matching text
@@ -145,46 +179,35 @@
             return text.replace(regex, '<mark>$1</mark>');
         }
 
+        function showSearchError() {
+            searchResults.innerHTML = '<div class="search-error">Search temporarily unavailable</div>';
+        }
+
         // Event listeners
+        searchToggle.addEventListener('click', openSearch);
+        searchClose.addEventListener('click', closeSearch);
+
         searchInput.addEventListener('input', function() {
             performSearch(this.value);
         });
 
-        searchInput.addEventListener('focus', function() {
-            if (this.value.trim()) {
-                performSearch(this.value);
-            }
-        });
-
-        searchButton.addEventListener('click', function() {
-            performSearch(searchInput.value);
-        });
-
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch(this.value);
-            }
-        });
-
-        // Close search results when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) {
-                searchResults.classList.remove('active');
-            }
-        });
-
-        // Close search results on escape key
-        document.addEventListener('keydown', function(e) {
+        searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                searchResults.classList.remove('active');
-                searchInput.blur();
+                closeSearch();
             }
         });
 
-        // Load search index when page loads
+        // Close overlay when clicking on backdrop
+        searchOverlay.addEventListener('click', function(e) {
+            if (e.target === searchOverlay) {
+                closeSearch();
+            }
+        });
+
+        // Load search index
         loadSearchIndex();
 
-        // Your existing JavaScript for mobile nav, dark mode, etc.
+        // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
         const navMenu = document.querySelector('.nav-menu');
         const dropdowns = document.querySelectorAll('.dropdown');
