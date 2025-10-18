@@ -10,6 +10,19 @@
                 </a>
             </div>
             <nav class="nav">
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Search documentation..." aria-label="Search">
+                        <button class="search-button" id="search-button" aria-label="Perform search">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-results" id="search-results"></div>
+                </div>
+
                 <ul class="nav-menu">
                     {% for link in site.navigation %}
                     {% if link.dropdown %}
@@ -58,34 +71,120 @@
 </header>
 
 <script>
-    // JavaScript for mobile navigation, dark mode, and interactions
+    // JavaScript for search functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Dark mode functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        // Get current theme from localStorage or system preference
-        const currentTheme = localStorage.getItem('theme') || 
-                            (prefersDarkScheme.matches ? 'dark' : 'light');
-        
-        // Apply the current theme
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        
-        // Toggle theme function
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+        // Search elements
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const searchResults = document.getElementById('search-results');
+        let searchIndex = [];
+
+        // Load search index
+        function loadSearchIndex() {
+            fetch('{{ "/search-index.json" | relative_url }}')
+                .then(response => {
+                    if (!response.ok) throw new Error('Search index not found');
+                    return response.json();
+                })
+                .then(data => {
+                    searchIndex = data;
+                    console.log('Search index loaded with', data.length, 'items');
+                })
+                .catch(error => {
+                    console.error('Error loading search index:', error);
+                    searchResults.innerHTML = '<div class="search-error">Search temporarily unavailable</div>';
+                });
         }
-        
-        // Theme toggle event listener
-        if (themeToggle) {
-            themeToggle.addEventListener('click', toggleTheme);
+
+        // Perform search
+        function performSearch(query) {
+            if (!query.trim() || searchIndex.length === 0) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            const results = searchIndex.filter(item => {
+                const searchableText = (item.title + ' ' + item.content + ' ' + (item.tags || '')).toLowerCase();
+                return searchableText.includes(query.toLowerCase());
+            }).slice(0, 8); // Limit to 8 results
+
+            displayResults(results, query);
         }
-        
-        // Mobile menu toggle
+
+        // Display results
+        function displayResults(results, query) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-no-results">No results found for "' + query + '"</div>';
+            } else {
+                let html = '<div class="search-results-list">';
+                results.forEach(result => {
+                    // Highlight matching text in title and excerpt
+                    const title = highlightText(result.title, query);
+                    const excerpt = highlightText(result.excerpt, query);
+                    
+                    html += `
+                        <div class="search-result-item">
+                            <a href="${result.url}" class="search-result-link">
+                                <div class="search-result-title">${title}</div>
+                                <div class="search-result-excerpt">${excerpt}</div>
+                                <div class="search-result-url">${result.url}</div>
+                            </a>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                searchResults.innerHTML = html;
+            }
+            searchResults.classList.add('active');
+        }
+
+        // Highlight matching text
+        function highlightText(text, query) {
+            if (!query.trim()) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', function() {
+            performSearch(this.value);
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim()) {
+                performSearch(this.value);
+            }
+        });
+
+        searchButton.addEventListener('click', function() {
+            performSearch(searchInput.value);
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch(this.value);
+            }
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                searchResults.classList.remove('active');
+            }
+        });
+
+        // Close search results on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }
+        });
+
+        // Load search index when page loads
+        loadSearchIndex();
+
+        // Your existing JavaScript for mobile nav, dark mode, etc.
         const hamburger = document.querySelector('.hamburger');
         const navMenu = document.querySelector('.nav-menu');
         const dropdowns = document.querySelectorAll('.dropdown');
@@ -98,12 +197,11 @@
             });
         }
         
-        // Handle dropdowns - prevent redirect for dropdown parents
+        // Handle dropdowns
         dropdowns.forEach(dropdown => {
             const link = dropdown.querySelector('.nav-link');
             const dropdownMenu = dropdown.querySelector('.dropdown-menu');
             
-            // Desktop: show on hover
             dropdown.addEventListener('mouseenter', function() {
                 if (window.innerWidth > 768) {
                     dropdownMenu.style.opacity = '1';
@@ -120,13 +218,11 @@
                 }
             });
             
-            // Mobile: toggle on click
             link.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768) {
                     e.preventDefault();
                     dropdown.classList.toggle('active');
                     
-                    // Close other dropdowns
                     dropdowns.forEach(otherDropdown => {
                         if (otherDropdown !== dropdown) {
                             otherDropdown.classList.remove('active');
@@ -146,7 +242,7 @@
             }
         });
         
-        // Close mobile menu when clicking on a link (except dropdown parents)
+        // Close mobile menu when clicking on a link
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 if (window.innerWidth <= 768) {
@@ -159,17 +255,26 @@
                 }
             });
         });
+
+        // Dark mode functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
         
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropdown') && window.innerWidth > 768) {
-                dropdowns.forEach(dropdown => {
-                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-                    dropdownMenu.style.opacity = '0';
-                    dropdownMenu.style.visibility = 'hidden';
-                    dropdownMenu.style.transform = 'translateY(10px)';
-                });
-            }
-        });
+        const currentTheme = localStorage.getItem('theme') || 
+                            (prefersDarkScheme.matches ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
     });
 </script>
