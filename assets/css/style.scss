@@ -3,7 +3,7 @@
 
 // Variables
 :root {
-    // Light mode variables (existing)
+    // Light mode variables
     --primary-color: #6366f1;
     --primary-light: #818cf8;
     --primary-dark: #4f46e5;
@@ -41,42 +41,6 @@
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-}
-
-// Dark mode toggle button
-.theme-toggle {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: var(--border-radius);
-    transition: var(--transition);
-    color: var(--text-dark);
-    margin-left: 1rem;
-    
-    &:hover {
-        background: var(--bg-lighter);
-    }
-    
-    .sun-icon, .moon-icon {
-        width: 20px;
-        height: 20px;
-    }
-    
-    .moon-icon {
-        display: none;
-    }
-}
-
-[data-theme="dark"] {
-    .theme-toggle {
-        .sun-icon {
-            display: none;
-        }
-        .moon-icon {
-            display: block;
-        }
-    }
 }
 
 // Base styles
@@ -161,11 +125,11 @@ body {
     display: flex;
     list-style: none;
     align-items: center;
+    gap: 2rem;
 }
 
 .nav-item {
     position: relative;
-    margin-left: 2rem;
 }
 
 .nav-link {
@@ -175,6 +139,8 @@ body {
     transition: var(--transition);
     padding: 0.5rem 0;
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .nav-link:hover,
@@ -250,124 +216,7 @@ body {
     border-left-color: var(--primary-color);
 }
 
-// Your existing styles for hero, content, posts, footer etc.
-// Hero section
-.hero {
-    text-align: center;
-    padding: 4rem 0;
-    
-    h1 {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    
-    p {
-        font-size: 1.2rem;
-        color: var(--text-light);
-    }
-}
-
-// Content
-.content {
-    padding: 2rem 0;
-}
-
-// Posts
-.post {
-    padding: 2rem 0;
-    
-    .post-header {
-        margin-bottom: 2rem;
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        time {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-    }
-    
-    .post-content {
-        font-size: 1.1rem;
-        line-height: 1.8;
-    }
-}
-
-// Footer
-.site-footer {
-    text-align: center;
-    padding: 2rem 0;
-    border-top: 1px solid var(--border-light);
-    color: var(--text-light);
-    margin-top: 4rem;
-}
-
-// Responsive
-@media (max-width: 768px) {
-    .hamburger {
-        display: flex;
-    }
-    
-    .nav-menu {
-        position: fixed;
-        top: 70px;
-        right: -100%;
-        flex-direction: column;
-        background: var(--bg-white);
-        width: 80%;
-        max-width: 300px;
-        height: calc(100vh - 70px);
-        box-shadow: var(--shadow-xl);
-        transition: var(--transition);
-        padding: 2rem 0;
-        align-items: flex-start;
-    }
-    
-    .nav-menu.active {
-        right: 0;
-    }
-    
-    .nav-item {
-        margin: 0;
-        width: 100%;
-    }
-    
-    .nav-link {
-        display: block;
-        padding: 1rem 2rem;
-        width: 100%;
-    }
-    
-    .dropdown-menu {
-        position: static;
-        opacity: 1;
-        visibility: visible;
-        transform: none;
-        box-shadow: none;
-        background: var(--bg-lighter);
-        width: 100%;
-        display: none;
-    }
-    
-    .dropdown.active .dropdown-menu {
-        display: block;
-    }
-    
-    .main-content {
-        margin-top: 70px;
-    }
-    
-    .hero h1 {
-        font-size: 2rem;
-    }
-}
-
-
-
-// Dark mode toggle button - add this to your CSS
+// Dark mode toggle button
 .theme-toggle {
     background: none;
     border: none;
@@ -376,7 +225,6 @@ body {
     border-radius: var(--border-radius);
     transition: var(--transition);
     color: var(--text-dark);
-    margin-left: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -406,26 +254,198 @@ body {
     }
 }
 
-// Update the nav-menu to properly align items
-.nav-menu {
-    display: flex;
-    list-style: none;
-    align-items: center;
-    gap: 2rem; // Use gap instead of margin-left on nav-items
+// Hamburger menu
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 0.5rem;
 }
 
-.nav-item {
-    position: relative;
-    // Remove margin-left since we're using gap
-}
-
-// Keep your existing dropdown styles, they're fine
-.dropdown-arrow {
-    font-size: 0.7rem;
-    margin-left: 5px;
+.bar {
+    width: 25px;
+    height: 3px;
+    background: var(--text-dark);
+    margin: 3px 0;
     transition: var(--transition);
+    border-radius: 2px;
 }
 
-.dropdown:hover .dropdown-arrow {
-    transform: rotate(180deg);
+.hamburger.active .bar:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active .bar:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+// Main content area
+.main-content {
+    margin-top: 80px;
+}
+
+// Hero section
+.hero {
+    text-align: center;
+    padding: 4rem 0;
+    
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+    }
+    
+    p {
+        font-size: 1.2rem;
+        color: var(--text-light);
+    }
+}
+
+// Content
+.content {
+    padding: 2rem 0;
+}
+
+// Posts
+.post {
+    padding: 2rem 0;
+    
+    .post-header {
+        margin-bottom: 2rem;
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        
+        time {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+    }
+    
+    .post-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-dark);
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-dark);
+        }
+        
+        p {
+            color: var(--text-dark);
+        }
+    }
+}
+
+// Footer
+.site-footer {
+    text-align: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border-light);
+    color: var(--text-light);
+    margin-top: 4rem;
+    background: var(--bg-light);
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex;
+    }
+    
+    .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -100%;
+        flex-direction: column;
+        background: var(--bg-white);
+        width: 80%;
+        max-width: 300px;
+        height: calc(100vh - 70px);
+        box-shadow: var(--shadow-xl);
+        transition: var(--transition);
+        padding: 2rem 0;
+        align-items: flex-start;
+        gap: 0;
+    }
+    
+    .nav-menu.active {
+        right: 0;
+    }
+    
+    .nav-item {
+        margin: 0;
+        width: 100%;
+    }
+    
+    .nav-link {
+        display: block;
+        padding: 1rem 2rem;
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        background: var(--bg-lighter);
+        width: 100%;
+        display: none;
+        border: none;
+        border-radius: 0;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        display: block;
+    }
+    
+    .theme-toggle {
+        margin: 1rem 2rem;
+        width: calc(100% - 4rem);
+        justify-content: center;
+    }
+    
+    .main-content {
+        margin-top: 70px;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .nav-container {
+        padding: 0.8rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .hero {
+        padding: 3rem 0;
+        
+        h1 {
+            font-size: 1.75rem;
+        }
+        
+        p {
+            font-size: 1rem;
+        }
+    }
+    
+    .post .post-header h1 {
+        font-size: 2rem;
+    }
 }
