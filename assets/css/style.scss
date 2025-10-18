@@ -364,3 +364,68 @@ body {
         font-size: 2rem;
     }
 }
+
+
+
+// Dark mode toggle button - add this to your CSS
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    color: var(--text-dark);
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+        background: var(--bg-lighter);
+    }
+    
+    .sun-icon, .moon-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .moon-icon {
+        display: none;
+    }
+}
+
+[data-theme="dark"] {
+    .theme-toggle {
+        .sun-icon {
+            display: none;
+        }
+        .moon-icon {
+            display: block;
+        }
+    }
+}
+
+// Update the nav-menu to properly align items
+.nav-menu {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 2rem; // Use gap instead of margin-left on nav-items
+}
+
+.nav-item {
+    position: relative;
+    // Remove margin-left since we're using gap
+}
+
+// Keep your existing dropdown styles, they're fine
+.dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: 5px;
+    transition: var(--transition);
+}
+
+.dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+}
