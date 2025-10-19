@@ -90,140 +90,89 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality
+        // Search functionality with Lunr.js
         const searchToggle = document.getElementById('searchToggle');
         const searchOverlay = document.getElementById('searchOverlay');
         const searchClose = document.getElementById('searchClose');
         const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
-        let searchIndex = [];
+        
+        let lunrIndex = null;
+        let searchData = {};
 
-        // Build search index from current page and known pages
-        function buildSearchIndex() {
-            console.log('Building search index...');
-            
-            // Start with current page
-            const currentPage = {
-                title: document.title.replace(' - ' + '{{ site.title }}', '').replace('{{ site.title }}', '').trim(),
-                url: window.location.pathname,
-                content: getPageContent(),
-                excerpt: getPageExcerpt()
-            };
-            
-            searchIndex = [currentPage];
-            
-            // Add known pages from navigation
-            const navLinks = document.querySelectorAll('.nav-menu a[href]');
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && href !== '#' && !href.startsWith('javascript:')) {
-                    const title = link.textContent.trim();
-                    // Only add if not already in index
-                    if (!searchIndex.find(item => item.url === href)) {
-                        searchIndex.push({
-                            title: title,
-                            url: href,
-                            content: title, // We'll fetch actual content when searched
-                            excerpt: title
-                        });
+        // Initialize search
+        function initSearch() {
+            // Load search data
+            fetch('{{ "/assets/js/search-data.json" | relative_url }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Search data not found');
                     }
-                }
-            });
-            
-            console.log('Search index built with', searchIndex.length, 'items');
-        }
-
-        // Get content from current page
-        function getPageContent() {
-            // Try to get main content
-            const mainContent = document.querySelector('main') || document.querySelector('.content') || document.body;
-            return mainContent.textContent.replace(/\s+/g, ' ').trim();
-        }
-
-        function getPageExcerpt() {
-            const content = getPageContent();
-            return content.substring(0, 150) + (content.length > 150 ? '...' : '');
-        }
-
-        // Fetch page content when needed
-        async function fetchPageContent(url) {
-            try {
-                const response = await fetch(url);
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const contentEl = doc.querySelector('main') || doc.querySelector('.content') || doc.body;
-                return contentEl.textContent.replace(/\s+/g, ' ').trim();
-            } catch (error) {
-                console.warn('Could not fetch content for:', url);
-                return '';
-            }
+                    return response.json();
+                })
+                .then(data => {
+                    searchData = data;
+                    
+                    // Build Lunr index
+                    lunrIndex = lunr(function() {
+                        this.ref('id');
+                        this.field('title', { boost: 10 });
+                        this.field('content', { boost: 2 });
+                        this.field('doc', { boost: 5 });
+                        
+                        // Add documents to index
+                        for (const id in searchData) {
+                            this.add({
+                                id: id,
+                                title: searchData[id].title,
+                                content: searchData[id].content,
+                                doc: searchData[id].doc
+                            });
+                        }
+                    });
+                    
+                    console.log('Lunr search initialized with', Object.keys(searchData).length, 'documents');
+                })
+                .catch(error => {
+                    console.error('Failed to load search data:', error);
+                    searchResults.innerHTML = '<div class="search-error">Search data not available</div>';
+                });
         }
 
         // Toggle search overlay
         function openSearch() {
-            console.log('Opening search overlay');
             searchOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
             searchInput.focus();
-            
-            // Build search index when opening
-            if (searchIndex.length === 0) {
-                buildSearchIndex();
-            }
         }
 
         function closeSearch() {
-            console.log('Closing search overlay');
             searchOverlay.classList.remove('active');
             document.body.style.overflow = '';
             searchInput.value = '';
             searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
         }
 
-        // Perform search
-        async function performSearch(query) {
-            console.log('Searching for:', query);
-            
+        // Perform search with Lunr
+        function performSearch(query) {
             if (!query.trim()) {
                 searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
                 return;
             }
             
-            if (searchIndex.length === 0) {
-                console.warn('Search index is empty');
-                searchResults.innerHTML = '<div class="search-error">No search data available</div>';
+            if (!lunrIndex) {
+                searchResults.innerHTML = '<div class="search-error">Search index not loaded yet</div>';
                 return;
             }
 
-            const searchTerm = query.toLowerCase().trim();
-            console.log('Search term:', searchTerm);
-
-            let results = [];
-            
-            for (const item of searchIndex) {
-                // For pages we haven't fetched content for yet, fetch it now
-                if (item.content === item.title) {
-                    item.content = await fetchPageContent(item.url);
-                    item.excerpt = item.content.substring(0, 150) + (item.content.length > 150 ? '...' : '');
-                }
-                
-                const searchableText = (
-                    (item.title || '') + ' ' + 
-                    (item.content || '')
-                ).toLowerCase();
-                
-                if (searchableText.includes(searchTerm)) {
-                    results.push(item);
-                }
-                
-                // Limit results
-                if (results.length >= 10) break;
+            try {
+                // Perform the search
+                const results = lunrIndex.search(query);
+                displayResults(results, query);
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="search-error">Search error occurred</div>';
             }
-
-            console.log('Found results:', results.length);
-            displayResults(results, query);
         }
 
         // Display results
@@ -233,44 +182,92 @@
                     <div class="search-no-results">
                         <p>No results found for "${query}"</p>
                         <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Try different keywords.
+                            Try different keywords or check for typos.
                         </p>
                     </div>
                 `;
-            } else {
-                let html = '<div class="search-results-list">';
-                results.forEach(result => {
-                    const title = highlightText(result.title, query);
-                    const excerpt = highlightText(result.excerpt, query);
-                    
-                    html += `
-                        <a href="${result.url}" class="search-result-item">
-                            <div class="search-result-content">
-                                <div class="search-result-title">${title}</div>
-                                <div class="search-result-excerpt">${excerpt}</div>
-                                <div class="search-result-url">${result.url}</div>
-                            </div>
-                            <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </a>
-                    `;
-                });
-                html += '</div>';
-                searchResults.innerHTML = html;
+                return;
             }
+
+            let html = '<div class="search-results-list">';
+            
+            results.slice(0, 10).forEach(result => {
+                const item = searchData[result.ref];
+                if (!item) return;
+                
+                const title = highlightText(item.title, query);
+                const excerpt = getExcerpt(item.content, query, 150);
+                
+                html += `
+                    <a href="${item.url}" class="search-result-item">
+                        <div class="search-result-content">
+                            <div class="search-result-title">${title}</div>
+                            <div class="search-result-excerpt">${excerpt}</div>
+                            <div class="search-result-url">${item.relUrl}</div>
+                        </div>
+                        <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                    </a>
+                `;
+            });
+            
+            html += '</div>';
+            searchResults.innerHTML = html;
+        }
+
+        // Get excerpt with context around search terms
+        function getExcerpt(content, query, length = 150) {
+            if (!content) return '';
+            
+            const searchTerms = query.toLowerCase().split(/\s+/);
+            const contentLower = content.toLowerCase();
+            
+            // Try to find a search term in content
+            for (const term of searchTerms) {
+                if (term.length < 2) continue;
+                
+                const index = contentLower.indexOf(term);
+                if (index !== -1) {
+                    const start = Math.max(0, index - 30);
+                    const end = Math.min(content.length, index + term.length + 100);
+                    let excerpt = content.substring(start, end);
+                    
+                    if (start > 0) excerpt = '...' + excerpt;
+                    if (end < content.length) excerpt = excerpt + '...';
+                    
+                    return highlightText(excerpt, query);
+                }
+            }
+            
+            // Fallback to beginning of content
+            const fallbackExcerpt = content.substring(0, length) + (content.length > length ? '...' : '');
+            return highlightText(fallbackExcerpt, query);
         }
 
         // Highlight matching text
         function highlightText(text, query) {
             if (!query.trim() || !text) return text || '';
-            try {
-                const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                return text.replace(regex, '<mark>$1</mark>');
-            } catch (error) {
-                console.error('Error highlighting text:', error);
-                return text || '';
-            }
+            
+            const terms = query.split(/\s+/);
+            let highlighted = text;
+            
+            terms.forEach(term => {
+                if (term.length < 2) return;
+                try {
+                    const regex = new RegExp(`(${escapeRegex(term)})`, 'gi');
+                    highlighted = highlighted.replace(regex, '<mark>$1</mark>');
+                } catch (error) {
+                    // Skip regex errors for this term
+                }
+            });
+            
+            return highlighted;
+        }
+
+        // Escape regex special characters
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
         // Event listeners for search
@@ -291,7 +288,39 @@
                 if (e.key === 'Escape') {
                     closeSearch();
                 }
+                
+                // Handle arrow keys for result navigation
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+                    e.preventDefault();
+                    navigateResults(e.key);
+                }
             });
+        }
+
+        // Result navigation with keyboard
+        function navigateResults(key) {
+            const results = searchResults.querySelectorAll('.search-result-item');
+            if (results.length === 0) return;
+            
+            const currentActive = searchResults.querySelector('.search-result-item.active');
+            let newActive = null;
+            
+            if (key === 'ArrowDown') {
+                newActive = currentActive ? 
+                    currentActive.nextElementSibling : results[0];
+            } else if (key === 'ArrowUp') {
+                newActive = currentActive ? 
+                    currentActive.previousElementSibling : results[results.length - 1];
+            } else if (key === 'Enter' && currentActive) {
+                currentActive.click();
+                return;
+            }
+            
+            if (currentActive) currentActive.classList.remove('active');
+            if (newActive) {
+                newActive.classList.add('active');
+                newActive.scrollIntoView({ block: 'nearest' });
+            }
         }
 
         // Close overlay when clicking on backdrop
@@ -303,8 +332,8 @@
             });
         }
 
-        // Build initial search index
-        buildSearchIndex();
+        // Initialize search on page load
+        initSearch();
 
         // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
@@ -356,13 +385,15 @@
         
         // Header scroll effect
         const header = document.querySelector('.header');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 100) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
+        if (header) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        }
         
         // Close mobile menu when clicking on a link
         document.querySelectorAll('.nav-link').forEach(link => {
@@ -370,8 +401,8 @@
                 if (window.innerWidth <= 768) {
                     const parentDropdown = link.closest('.dropdown');
                     if (!parentDropdown) {
-                        hamburger.classList.remove('active');
-                        navMenu.classList.remove('active');
+                        if (hamburger) hamburger.classList.remove('active');
+                        if (navMenu) navMenu.classList.remove('active');
                         document.body.style.overflow = '';
                     }
                 }
@@ -380,22 +411,21 @@
 
         // Dark mode functionality
         const themeToggle = document.getElementById('themeToggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        const currentTheme = localStorage.getItem('theme') || 
-                            (prefersDarkScheme.matches ? 'dark' : 'light');
-        
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-        
         if (themeToggle) {
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            const currentTheme = localStorage.getItem('theme') || 
+                                (prefersDarkScheme.matches ? 'dark' : 'light');
+            
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            function toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            }
+            
             themeToggle.addEventListener('click', toggleTheme);
         }
     });
