@@ -7,23 +7,10 @@ search_exclude: true
 {%- assign pages_array = "" | split: "" -%}
 {%- assign pages_array = pages_array | push: site.html_pages -%}
 
-{%- comment -%} Add collections if you have them {%- endcomment -%}
-{%- if site.collections -%}
-  {%- for collection in site.collections -%}
-    {%- unless collection.output == false or collection.label == "posts" -%}
-      {%- assign pages_array = pages_array | push: collection.docs -%}
-    {%- endunless -%}
-  {%- endfor -%}
-{%- endif -%}
-
 {%- for pages in pages_array -%}
   {%- for page in pages -%}
     {%- if page.title and page.search_exclude != true -%}
-      {%- assign page_content = page.content -%}
-      
-      {%- comment -%} Clean content for search {%- endcomment -%}
-      {%- assign page_content = page_content | markdownify | strip_html | normalize_whitespace -%}
-      
+      {%- assign page_content = page.content | markdownify | strip_html | normalize_whitespace | truncate: 500 -%}
       {%- unless i == 0 -%},{%- endunless -%}
       "{{ i }}": {
         "doc": {{ page.title | jsonify }},
