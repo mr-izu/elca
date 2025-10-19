@@ -98,21 +98,67 @@
         const searchResults = document.getElementById('searchResults');
         let searchIndex = [];
 
-        // Load search index from JSON file (plugin-generated)
-        function loadSearchIndex() {
-            fetch('{{ "/search-data.json" | relative_url }}')
-                .then(response => {
-                    if (!response.ok) throw new Error('Search index not found');
-                    return response.json();
-                })
-                .then(data => {
-                    searchIndex = data;
-                    console.log('✅ Search index loaded with', data.length, 'items');
-                })
-                .catch(error => {
-                    console.error('❌ Error loading search index:', error);
-                    searchResults.innerHTML = '<div class="search-error">Search temporarily unavailable</div>';
-                });
+        // Build search index from current page and known pages
+        function buildSearchIndex() {
+            console.log('Building search index...');
+            
+            // Start with current page
+            const currentPage = {
+                title: document.title.replace(' - ' + '{{ site.title }}', '').replace('{{ site.title }}', '').trim(),
+                url: window.location.pathname,
+                content: getPageContent(),
+                excerpt: getPageExcerpt()
+            };
+            
+            searchIndex = [currentPage];
+            
+            // Add known pages from navigation
+            const navLinks = document.querySelectorAll('.nav-menu a[href]');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && !href.startsWith('javascript:')) {
+                    const title = link.textContent.trim();
+                    // Only add if not already in index
+                    if (!searchIndex.find(item => item.url === href)) {
+                        searchIndex.push({
+                            title: title,
+                            url: href,
+                            content: title, // We'll fetch actual content when searched
+                            excerpt: title
+                        });
+                    }
+                }
+            });
+            
+            console.log('Search index built with', searchIndex.length, 'items');
+        }
+
+        // Get content from current page
+        function getPageContent() {
+            // Try to get main content
+            const mainContent = document.querySelector('main') || document.querySelector('.content') || document.body;
+            return mainContent.textContent.replace(/\s+/g, ' ').trim();
+        }
+
+        function getPageExcerpt() {
+            const content = getPageContent();
+            return content.substring(0, 150) + (content.length > 150 ? '...' : '');
+        }
+
+        // Fetch page content when needed
+        async function fetchPageContent(url) {
+            try {
+                const response = await fetch(url);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const contentEl = doc.querySelector('main') || doc.querySelector('.content') || doc.body;
+                return contentEl.textContent.replace(/\s+/g, ' ').trim();
+            } catch (error) {
+                console.warn('Could not fetch content for:', url);
+                return '';
+            }
         }
 
         // Toggle search overlay
@@ -122,9 +168,9 @@
             document.body.style.overflow = 'hidden';
             searchInput.focus();
             
-            // Reload search index when opening to ensure it's fresh
+            // Build search index when opening
             if (searchIndex.length === 0) {
-                loadSearchIndex();
+                buildSearchIndex();
             }
         }
 
@@ -137,9 +183,8 @@
         }
 
         // Perform search
-        function performSearch(query) {
+        async function performSearch(query) {
             console.log('Searching for:', query);
-            console.log('Search index length:', searchIndex.length);
             
             if (!query.trim()) {
                 searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
@@ -155,20 +200,27 @@
             const searchTerm = query.toLowerCase().trim();
             console.log('Search term:', searchTerm);
 
-            const results = searchIndex.filter(item => {
-                if (!item || !item.title || !item.content) {
-                    return false;
+            let results = [];
+            
+            for (const item of searchIndex) {
+                // For pages we haven't fetched content for yet, fetch it now
+                if (item.content === item.title) {
+                    item.content = await fetchPageContent(item.url);
+                    item.excerpt = item.content.substring(0, 150) + (item.content.length > 150 ? '...' : '');
                 }
                 
                 const searchableText = (
                     (item.title || '') + ' ' + 
-                    (item.content || '') + ' ' + 
-                    (item.tags || '') + ' ' + 
-                    (item.categories || '')
+                    (item.content || '')
                 ).toLowerCase();
                 
-                return searchableText.includes(searchTerm);
-            }).slice(0, 10);
+                if (searchableText.includes(searchTerm)) {
+                    results.push(item);
+                }
+                
+                // Limit results
+                if (results.length >= 10) break;
+            }
 
             console.log('Found results:', results.length);
             displayResults(results, query);
@@ -181,7 +233,7 @@
                     <div class="search-no-results">
                         <p>No results found for "${query}"</p>
                         <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Try different keywords or check the search index.
+                            Try different keywords.
                         </p>
                     </div>
                 `;
@@ -189,7 +241,7 @@
                 let html = '<div class="search-results-list">';
                 results.forEach(result => {
                     const title = highlightText(result.title, query);
-                    const excerpt = highlightText(result.excerpt || result.content.substring(0, 200), query);
+                    const excerpt = highlightText(result.excerpt, query);
                     
                     html += `
                         <a href="${result.url}" class="search-result-item">
@@ -224,9 +276,6 @@
         // Event listeners for search
         if (searchToggle) {
             searchToggle.addEventListener('click', openSearch);
-            console.log('Search toggle event listener added');
-        } else {
-            console.error('Search toggle button not found');
         }
 
         if (searchClose) {
@@ -254,8 +303,8 @@
             });
         }
 
-        // Load search index initially
-        loadSearchIndex();
+        // Build initial search index
+        buildSearchIndex();
 
         // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
