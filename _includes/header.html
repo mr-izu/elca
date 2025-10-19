@@ -98,35 +98,21 @@
         const searchResults = document.getElementById('searchResults');
         let searchIndex = [];
 
-        // Load search index from inline data
+        // Load search index from JSON file (plugin-generated)
         function loadSearchIndex() {
-            const searchDataElement = document.getElementById('searchData');
-            if (searchDataElement) {
-                try {
-                    const searchDataText = searchDataElement.textContent.trim();
-                    console.log('Search data raw length:', searchDataText.length);
-                    
-                    if (searchDataText) {
-                        searchIndex = JSON.parse(searchDataElement.textContent);
-                        console.log('Search index loaded with', searchIndex.length, 'items');
-                        
-                        // Debug: log first few items
-                        if (searchIndex.length > 0) {
-                            console.log('First search item:', searchIndex[0]);
-                        }
-                    } else {
-                        console.warn('Search data is empty');
-                        showSearchError('Search data is empty - no content to search');
-                    }
-                } catch (error) {
-                    console.error('Error parsing search data:', error);
-                    console.error('Search data content:', searchDataElement.textContent.substring(0, 500));
-                    showSearchError('Error loading search data');
-                }
-            } else {
-                console.error('Search data element not found');
-                showSearchError('Search functionality not available');
-            }
+            fetch('{{ "/search-data.json" | relative_url }}')
+                .then(response => {
+                    if (!response.ok) throw new Error('Search index not found');
+                    return response.json();
+                })
+                .then(data => {
+                    searchIndex = data;
+                    console.log('✅ Search index loaded with', data.length, 'items');
+                })
+                .catch(error => {
+                    console.error('❌ Error loading search index:', error);
+                    searchResults.innerHTML = '<div class="search-error">Search temporarily unavailable</div>';
+                });
         }
 
         // Toggle search overlay
@@ -233,10 +219,6 @@
                 console.error('Error highlighting text:', error);
                 return text || '';
             }
-        }
-
-        function showSearchError(message) {
-            searchResults.innerHTML = `<div class="search-error">${message}</div>`;
         }
 
         // Event listeners for search
