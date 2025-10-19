@@ -87,6 +87,8 @@
         </div>
     </div>
 </header>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Search functionality with Lunr.js
@@ -112,32 +114,54 @@
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    return response.json();
+                    return response.text();
                 })
-                .then(data => {
-                    console.log('Search data loaded:', Object.keys(data).length, 'items');
-                    searchData = data;
+                .then(text => {
+                    console.log('Raw response received, length:', text.length);
                     
-                    // Build Lunr index
-                    lunrIndex = lunr(function() {
-                        this.ref('id');
-                        this.field('title', { boost: 10 });
-                        this.field('content', { boost: 2 });
-                        this.field('doc', { boost: 5 });
+                    // Clean the response - remove any Liquid template code
+                    let cleanText = text.trim();
+                    
+                    // Remove Liquid front matter if present
+                    if (cleanText.startsWith('---')) {
+                        const parts = cleanText.split('---');
+                        cleanText = parts[parts.length - 1].trim();
+                        console.log('Removed front matter, cleaned length:', cleanText.length);
+                    }
+                    
+                    // Try to parse JSON
+                    try {
+                        const data = JSON.parse(cleanText);
+                        console.log('JSON parsed successfully, items:', Object.keys(data).length);
+                        searchData = data;
                         
-                        // Add documents to index
-                        for (const id in searchData) {
-                            this.add({
-                                id: id,
-                                title: searchData[id].title,
-                                content: searchData[id].content,
-                                doc: searchData[id].doc
-                            });
-                        }
-                    });
-                    
-                    searchInitialized = true;
-                    console.log('Lunr search initialized successfully');
+                        // Build Lunr index
+                        lunrIndex = lunr(function() {
+                            this.ref('id');
+                            this.field('title', { boost: 10 });
+                            this.field('content', { boost: 2 });
+                            this.field('doc', { boost: 5 });
+                            
+                            // Add documents to index
+                            for (const id in searchData) {
+                                const item = searchData[id];
+                                this.add({
+                                    id: id,
+                                    title: item.title || '',
+                                    content: item.content || '',
+                                    doc: item.doc || ''
+                                });
+                            }
+                        });
+                        
+                        searchInitialized = true;
+                        console.log('Lunr search initialized successfully');
+                        
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError);
+                        console.error('Problematic JSON text:', cleanText.substring(0, 500));
+                        throw new Error('Invalid JSON format in search data: ' + parseError.message);
+                    }
                 })
                 .catch(error => {
                     console.error('Failed to load search data:', error);
@@ -145,7 +169,10 @@
                         <div class="search-error">
                             <p>Search temporarily unavailable</p>
                             <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                                Could not load search index. Please refresh the page.
+                                Error: ${error.message}
+                            </p>
+                            <p style="font-size: 0.7rem; margin-top: 0.5rem;">
+                                Check browser console for details.
                             </p>
                         </div>
                     `;
@@ -168,13 +195,13 @@
             searchOverlay.classList.remove('active');
             document.body.style.overflow = '';
             searchInput.value = '';
-            searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
         }
 
         // Perform search with Lunr
         function performSearch(query) {
             if (!query.trim()) {
-                searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
+                searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
                 return;
             }
             
@@ -194,11 +221,10 @@
                 // Show loading state
                 searchResults.innerHTML = '<div class="search-placeholder"><p>Searching...</p></div>';
                 
-                // Perform the search with a small delay to prevent rapid searching
-                setTimeout(() => {
-                    const results = lunrIndex.search(query);
-                    displayResults(results, query);
-                }, 50);
+                // Perform the search
+                const results = lunrIndex.search(query);
+                console.log('Search results for "' + query + '":', results.length);
+                displayResults(results, query);
                 
             } catch (error) {
                 console.error('Search error:', error);
@@ -231,7 +257,10 @@
             
             results.slice(0, 10).forEach(result => {
                 const item = searchData[result.ref];
-                if (!item) return;
+                if (!item) {
+                    console.warn('Missing search data for ref:', result.ref);
+                    return;
+                }
                 
                 const title = highlightText(item.title, query);
                 const excerpt = getExcerpt(item.content, query, 150);
@@ -370,8 +399,8 @@
             });
         }
 
-        // Initialize search on page load (but don't block page load)
-        setTimeout(initSearch, 1000);
+        // Initialize search on page load
+        setTimeout(initSearch, 500);
 
         // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
@@ -467,4 +496,4 @@
             themeToggle.addEventListener('click', toggleTheme);
         }
     });
-    </script>
+</script>
