@@ -81,13 +81,12 @@
             </div>
             <div class="search-results" id="searchResults">
                 <div class="search-placeholder">
-                    <p>Type to search documentation</p>
+                    <p>Type here to search</p>
                 </div>
             </div>
         </div>
     </div>
 </header>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Search functionality with Lunr.js
@@ -99,18 +98,24 @@
         
         let lunrIndex = null;
         let searchData = {};
+        let searchInitialized = false;
 
         // Initialize search
         function initSearch() {
+            if (searchInitialized) return;
+            
+            console.log('Initializing search...');
+            
             // Load search data
-            fetch('{{ "/assets/js/search-data.json" | relative_url }}')
+            fetch('{{ "/assets/js/search-data.json" | relative_url }}?v=' + Date.now())
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Search data not found');
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Search data loaded:', Object.keys(data).length, 'items');
                     searchData = data;
                     
                     // Build Lunr index
@@ -131,11 +136,19 @@
                         }
                     });
                     
-                    console.log('Lunr search initialized with', Object.keys(searchData).length, 'documents');
+                    searchInitialized = true;
+                    console.log('Lunr search initialized successfully');
                 })
                 .catch(error => {
                     console.error('Failed to load search data:', error);
-                    searchResults.innerHTML = '<div class="search-error">Search data not available</div>';
+                    searchResults.innerHTML = `
+                        <div class="search-error">
+                            <p>Search temporarily unavailable</p>
+                            <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                                Could not load search index. Please refresh the page.
+                            </p>
+                        </div>
+                    `;
                 });
         }
 
@@ -144,6 +157,11 @@
             searchOverlay.classList.add('active');
             document.body.style.overflow = 'hidden';
             searchInput.focus();
+            
+            // Initialize search when opening if not already done
+            if (!searchInitialized) {
+                initSearch();
+            }
         }
 
         function closeSearch() {
@@ -160,18 +178,38 @@
                 return;
             }
             
-            if (!lunrIndex) {
-                searchResults.innerHTML = '<div class="search-error">Search index not loaded yet</div>';
+            if (!searchInitialized || !lunrIndex) {
+                searchResults.innerHTML = `
+                    <div class="search-error">
+                        <p>Search index loading...</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            Please wait a moment and try again.
+                        </p>
+                    </div>
+                `;
                 return;
             }
 
             try {
-                // Perform the search
-                const results = lunrIndex.search(query);
-                displayResults(results, query);
+                // Show loading state
+                searchResults.innerHTML = '<div class="search-placeholder"><p>Searching...</p></div>';
+                
+                // Perform the search with a small delay to prevent rapid searching
+                setTimeout(() => {
+                    const results = lunrIndex.search(query);
+                    displayResults(results, query);
+                }, 50);
+                
             } catch (error) {
                 console.error('Search error:', error);
-                searchResults.innerHTML = '<div class="search-error">Search error occurred</div>';
+                searchResults.innerHTML = `
+                    <div class="search-error">
+                        <p>Search error occurred</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            Please try different keywords.
+                        </p>
+                    </div>
+                `;
             }
         }
 
@@ -218,7 +256,7 @@
 
         // Get excerpt with context around search terms
         function getExcerpt(content, query, length = 150) {
-            if (!content) return '';
+            if (!content) return 'No content available';
             
             const searchTerms = query.toLowerCase().split(/\s+/);
             const contentLower = content.toLowerCase();
@@ -332,8 +370,8 @@
             });
         }
 
-        // Initialize search on page load
-        initSearch();
+        // Initialize search on page load (but don't block page load)
+        setTimeout(initSearch, 1000);
 
         // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
@@ -429,4 +467,4 @@
             themeToggle.addEventListener('click', toggleTheme);
         }
     });
-</script>
+    </script>
