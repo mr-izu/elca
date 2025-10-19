@@ -87,405 +87,229 @@
         </div>
     </div>
 </header>
-
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality with Lunr.js
-        const searchToggle = document.getElementById('searchToggle');
-        const searchOverlay = document.getElementById('searchOverlay');
-        const searchClose = document.getElementById('searchClose');
-        const searchInput = document.getElementById('searchInput');
-        const searchResults = document.getElementById('searchResults');
-        
-        let lunrIndex = null;
-        let searchData = {};
-        let searchInitialized = false;
-// Initialize search
-function initSearch() {
-    if (searchInitialized) return;
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchToggle = document.getElementById('searchToggle');
+    const searchOverlay = document.getElementById('searchOverlay');
+    const searchClose = document.getElementById('searchClose');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
     
-    console.log('Initializing search...');
-    
-    // Load search data
-    fetch('{{ "/assets/js/search-data.json" | relative_url }}?v=' + Date.now())
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(text => {
-            console.log('Raw response received');
-            
-            // Clean the response - remove Liquid front matter
-            let cleanText = text.trim();
-            
-            // Remove everything before the first { and after the last }
-            const firstBrace = cleanText.indexOf('{');
-            const lastBrace = cleanText.lastIndexOf('}');
-            
-            if (firstBrace === -1 || lastBrace === -1) {
-                throw new Error('No JSON object found in response');
-            }
-            
-            cleanText = cleanText.substring(firstBrace, lastBrace + 1);
-            console.log('Cleaned JSON length:', cleanText.length);
-            
-            // Parse JSON
-            const data = JSON.parse(cleanText);
-            console.log('Search data loaded:', Object.keys(data).length, 'items');
-            searchData = data;
-            
-            // Build Lunr index
-            lunrIndex = lunr(function() {
-                this.ref('id');
-                this.field('title', { boost: 10 });
-                this.field('content', { boost: 2 });
-                this.field('doc', { boost: 5 });
+    let lunrIndex = null;
+    let searchData = {};
+
+    // Initialize search
+    function initSearch() {
+        fetch('{{ "/assets/js/search-data.json" | relative_url }}')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                searchData = data;
                 
-                // Add documents to index
-                for (const id in searchData) {
-                    this.add({
-                        id: id,
-                        title: searchData[id].title,
-                        content: searchData[id].content,
-                        doc: searchData[id].doc
-                    });
-                }
+                // Build Lunr index
+                lunrIndex = lunr(function() {
+                    this.ref('id');
+                    this.field('title', { boost: 10 });
+                    this.field('content', { boost: 2 });
+                    this.field('doc', { boost: 5 });
+                    
+                    for (const id in searchData) {
+                        this.add({
+                            id: id,
+                            title: searchData[id].title || '',
+                            content: searchData[id].content || '',
+                            doc: searchData[id].doc || ''
+                        });
+                    }
+                });
+                
+                console.log('Search initialized with', Object.keys(searchData).length, 'pages');
+            })
+            .catch(error => {
+                console.error('Search init failed:', error);
+                searchResults.innerHTML = '<div class="search-error"><p>Search temporarily unavailable</p></div>';
             });
+    }
+
+    // Search functions
+    function openSearch() {
+        searchOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        searchInput.focus();
+        if (!lunrIndex) initSearch();
+    }
+
+    function closeSearch() {
+        searchOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        searchInput.value = '';
+        searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
+    }
+
+    function performSearch(query) {
+        if (!query.trim()) {
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
+            return;
+        }
+        
+        if (!lunrIndex) {
+            searchResults.innerHTML = '<div class="search-error"><p>Search index loading...</p></div>';
+            return;
+        }
+
+        try {
+            const results = lunrIndex.search(query);
+            displayResults(results, query);
+        } catch (error) {
+            console.error('Search error:', error);
+            searchResults.innerHTML = '<div class="search-error"><p>Search error occurred</p></div>';
+        }
+    }
+
+    function displayResults(results, query) {
+        if (results.length === 0) {
+            searchResults.innerHTML = `<div class="search-no-results"><p>No results found for "${query}"</p></div>`;
+            return;
+        }
+
+        let html = '<div class="search-results-list">';
+        results.slice(0, 10).forEach(result => {
+            const item = searchData[result.ref];
+            if (!item) return;
             
-            searchInitialized = true;
-            console.log('Lunr search initialized successfully');
-        })
-        .catch(error => {
-            console.error('Failed to load search data:', error);
-            searchResults.innerHTML = `
-                <div class="search-error">
-                    <p>Search temporarily unavailable</p>
-                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                        Error: ${error.message}
-                    </p>
-                </div>
+            const excerpt = item.content ? item.content.substring(0, 150) + '...' : 'No content available';
+            
+            html += `
+                <a href="${item.url}" class="search-result-item">
+                    <div class="search-result-content">
+                        <div class="search-result-title">${item.title}</div>
+                        <div class="search-result-excerpt">${excerpt}</div>
+                        <div class="search-result-url">${item.relUrl}</div>
+                    </div>
+                    <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </a>
             `;
         });
-}
+        html += '</div>';
+        searchResults.innerHTML = html;
+    }
 
-        // Toggle search overlay
-        function openSearch() {
-            searchOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            searchInput.focus();
-            
-            // Initialize search when opening if not already done
-            if (!searchInitialized) {
-                initSearch();
-            }
-        }
+    // Event listeners
+    if (searchToggle) searchToggle.addEventListener('click', openSearch);
+    if (searchClose) searchClose.addEventListener('click', closeSearch);
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => performSearch(e.target.value));
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeSearch();
+        });
+    }
+    if (searchOverlay) {
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) closeSearch();
+        });
+    }
 
-        function closeSearch() {
-            searchOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-            searchInput.value = '';
-            searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
-        }
+    // Initialize search on page load
+    initSearch();
 
-        // Perform search with Lunr
-        function performSearch(query) {
-            if (!query.trim()) {
-                searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
-                return;
-            }
-            
-            if (!searchInitialized || !lunrIndex) {
-                searchResults.innerHTML = `
-                    <div class="search-error">
-                        <p>Search index loading...</p>
-                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Please wait a moment and try again.
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-
-            try {
-                // Show loading state
-                searchResults.innerHTML = '<div class="search-placeholder"><p>Searching...</p></div>';
-                
-                // Perform the search
-                const results = lunrIndex.search(query);
-                console.log('Search results for "' + query + '":', results.length);
-                displayResults(results, query);
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                searchResults.innerHTML = `
-                    <div class="search-error">
-                        <p>Search error occurred</p>
-                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Please try different keywords.
-                        </p>
-                    </div>
-                `;
-            }
-        }
-
-        // Display results
-        function displayResults(results, query) {
-            if (results.length === 0) {
-                searchResults.innerHTML = `
-                    <div class="search-no-results">
-                        <p>No results found for "${query}"</p>
-                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                            Try different keywords or check for typos.
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '<div class="search-results-list">';
-            
-            results.slice(0, 10).forEach(result => {
-                const item = searchData[result.ref];
-                if (!item) {
-                    console.warn('Missing search data for ref:', result.ref);
-                    return;
-                }
-                
-                const title = highlightText(item.title, query);
-                const excerpt = getExcerpt(item.content, query, 150);
-                
-                html += `
-                    <a href="${item.url}" class="search-result-item">
-                        <div class="search-result-content">
-                            <div class="search-result-title">${title}</div>
-                            <div class="search-result-excerpt">${excerpt}</div>
-                            <div class="search-result-url">${item.relUrl}</div>
-                        </div>
-                        <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                    </a>
-                `;
-            });
-            
-            html += '</div>';
-            searchResults.innerHTML = html;
-        }
-
-        // Get excerpt with context around search terms
-        function getExcerpt(content, query, length = 150) {
-            if (!content) return 'No content available';
-            
-            const searchTerms = query.toLowerCase().split(/\s+/);
-            const contentLower = content.toLowerCase();
-            
-            // Try to find a search term in content
-            for (const term of searchTerms) {
-                if (term.length < 2) continue;
-                
-                const index = contentLower.indexOf(term);
-                if (index !== -1) {
-                    const start = Math.max(0, index - 30);
-                    const end = Math.min(content.length, index + term.length + 100);
-                    let excerpt = content.substring(start, end);
-                    
-                    if (start > 0) excerpt = '...' + excerpt;
-                    if (end < content.length) excerpt = excerpt + '...';
-                    
-                    return highlightText(excerpt, query);
-                }
-            }
-            
-            // Fallback to beginning of content
-            const fallbackExcerpt = content.substring(0, length) + (content.length > length ? '...' : '');
-            return highlightText(fallbackExcerpt, query);
-        }
-
-        // Highlight matching text
-        function highlightText(text, query) {
-            if (!query.trim() || !text) return text || '';
-            
-            const terms = query.split(/\s+/);
-            let highlighted = text;
-            
-            terms.forEach(term => {
-                if (term.length < 2) return;
-                try {
-                    const regex = new RegExp(`(${escapeRegex(term)})`, 'gi');
-                    highlighted = highlighted.replace(regex, '<mark>$1</mark>');
-                } catch (error) {
-                    // Skip regex errors for this term
-                }
-            });
-            
-            return highlighted;
-        }
-
-        // Escape regex special characters
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        // Event listeners for search
-        if (searchToggle) {
-            searchToggle.addEventListener('click', openSearch);
-        }
-
-        if (searchClose) {
-            searchClose.addEventListener('click', closeSearch);
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                performSearch(this.value);
-            });
-
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeSearch();
-                }
-                
-                // Handle arrow keys for result navigation
-                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
-                    e.preventDefault();
-                    navigateResults(e.key);
-                }
-            });
-        }
-
-        // Result navigation with keyboard
-        function navigateResults(key) {
-            const results = searchResults.querySelectorAll('.search-result-item');
-            if (results.length === 0) return;
-            
-            const currentActive = searchResults.querySelector('.search-result-item.active');
-            let newActive = null;
-            
-            if (key === 'ArrowDown') {
-                newActive = currentActive ? 
-                    currentActive.nextElementSibling : results[0];
-            } else if (key === 'ArrowUp') {
-                newActive = currentActive ? 
-                    currentActive.previousElementSibling : results[results.length - 1];
-            } else if (key === 'Enter' && currentActive) {
-                currentActive.click();
-                return;
-            }
-            
-            if (currentActive) currentActive.classList.remove('active');
-            if (newActive) {
-                newActive.classList.add('active');
-                newActive.scrollIntoView({ block: 'nearest' });
-            }
-        }
-
-        // Close overlay when clicking on backdrop
-        if (searchOverlay) {
-            searchOverlay.addEventListener('click', function(e) {
-                if (e.target === searchOverlay) {
-                    closeSearch();
-                }
-            });
-        }
-
-        // Initialize search on page load
-        setTimeout(initSearch, 500);
-
-        // Your existing JavaScript for mobile nav, dropdowns, etc.
-        const hamburger = document.querySelector('.hamburger');
-        const navMenu = document.querySelector('.nav-menu');
-        const dropdowns = document.querySelectorAll('.dropdown');
+    // Your existing navigation JavaScript remains below...
+    const hamburger = document.querySelector('.hamburger');
+    const navMenu = document.querySelector('.nav-menu');
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    // ... keep all your existing navigation code exactly as it was
+    if (hamburger) {
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+        });
+    }
+    
+    // Handle dropdowns
+    dropdowns.forEach(dropdown => {
+        const link = dropdown.querySelector('.nav-link');
+        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
         
-        if (hamburger) {
-            hamburger.addEventListener('click', function() {
-                hamburger.classList.toggle('active');
-                navMenu.classList.toggle('active');
-                document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
-            });
-        }
-        
-        // Handle dropdowns
-        dropdowns.forEach(dropdown => {
-            const link = dropdown.querySelector('.nav-link');
-            const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-            
-            dropdown.addEventListener('mouseenter', function() {
-                if (window.innerWidth > 768) {
-                    dropdownMenu.style.opacity = '1';
-                    dropdownMenu.style.visibility = 'visible';
-                    dropdownMenu.style.transform = 'translateY(0)';
-                }
-            });
-            
-            dropdown.addEventListener('mouseleave', function() {
-                if (window.innerWidth > 768) {
-                    dropdownMenu.style.opacity = '0';
-                    dropdownMenu.style.visibility = 'hidden';
-                    dropdownMenu.style.transform = 'translateY(10px)';
-                }
-            });
-            
-            link.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                    
-                    dropdowns.forEach(otherDropdown => {
-                        if (otherDropdown !== dropdown) {
-                            otherDropdown.classList.remove('active');
-                        }
-                    });
-                }
-            });
+        dropdown.addEventListener('mouseenter', function() {
+            if (window.innerWidth > 768) {
+                dropdownMenu.style.opacity = '1';
+                dropdownMenu.style.visibility = 'visible';
+                dropdownMenu.style.transform = 'translateY(0)';
+            }
         });
         
-        // Header scroll effect
-        const header = document.querySelector('.header');
-        if (header) {
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 100) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
-        }
+        dropdown.addEventListener('mouseleave', function() {
+            if (window.innerWidth > 768) {
+                dropdownMenu.style.opacity = '0';
+                dropdownMenu.style.visibility = 'hidden';
+                dropdownMenu.style.transform = 'translateY(10px)';
+            }
+        });
         
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    const parentDropdown = link.closest('.dropdown');
-                    if (!parentDropdown) {
-                        if (hamburger) hamburger.classList.remove('active');
-                        if (navMenu) navMenu.classList.remove('active');
-                        document.body.style.overflow = '';
+        link.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                dropdown.classList.toggle('active');
+                
+                dropdowns.forEach(otherDropdown => {
+                    if (otherDropdown !== dropdown) {
+                        otherDropdown.classList.remove('active');
                     }
-                }
-            });
-        });
-
-        // Dark mode functionality
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            const currentTheme = localStorage.getItem('theme') || 
-                                (prefersDarkScheme.matches ? 'dark' : 'light');
-            
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            
-            function toggleTheme() {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
+                });
             }
-            
-            themeToggle.addEventListener('click', toggleTheme);
-        }
+        });
     });
-</script>
+    
+    // Header scroll effect
+    const header = document.querySelector('.header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    }
+    
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                const parentDropdown = link.closest('.dropdown');
+                if (!parentDropdown) {
+                    if (hamburger) hamburger.classList.remove('active');
+                    if (navMenu) navMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    });
+
+    // Dark mode functionality
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        const currentTheme = localStorage.getItem('theme') || 
+                            (prefersDarkScheme.matches ? 'dark' : 'light');
+        
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+});
+    </script>
