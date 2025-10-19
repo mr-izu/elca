@@ -1,0 +1,6 @@
+---
+layout: null
+permalink: /assets/js/search-data.json
+search_exclude: true
+---
+{% include search-data.json %}
