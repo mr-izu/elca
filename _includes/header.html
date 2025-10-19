@@ -90,160 +90,190 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-// Search functionality
-const searchToggle = document.getElementById('searchToggle');
-const searchOverlay = document.getElementById('searchOverlay');
-const searchClose = document.getElementById('searchClose');
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
-let searchIndex = [];
+        // Search functionality
+        const searchToggle = document.getElementById('searchToggle');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchClose = document.getElementById('searchClose');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        let searchIndex = [];
 
-// Load search index from inline data
-function loadSearchIndex() {
-    const searchDataElement = document.getElementById('searchData');
-    if (searchDataElement) {
-        try {
-            const searchDataText = searchDataElement.textContent.trim();
-            console.log('Search data raw length:', searchDataText.length);
-            
-            if (searchDataText) {
-                searchIndex = JSON.parse(searchDataElement.textContent);
-                console.log('Search index loaded with', searchIndex.length, 'items');
-                
-                // Debug: log first few items
-                if (searchIndex.length > 0) {
-                    console.log('First search item:', searchIndex[0]);
-                    console.log('Last search item:', searchIndex[searchIndex.length - 1]);
+        // Load search index from inline data
+        function loadSearchIndex() {
+            const searchDataElement = document.getElementById('searchData');
+            if (searchDataElement) {
+                try {
+                    const searchDataText = searchDataElement.textContent.trim();
+                    console.log('Search data raw length:', searchDataText.length);
+                    
+                    if (searchDataText) {
+                        searchIndex = JSON.parse(searchDataElement.textContent);
+                        console.log('Search index loaded with', searchIndex.length, 'items');
+                        
+                        // Debug: log first few items
+                        if (searchIndex.length > 0) {
+                            console.log('First search item:', searchIndex[0]);
+                        }
+                    } else {
+                        console.warn('Search data is empty');
+                        showSearchError('Search data is empty - no content to search');
+                    }
+                } catch (error) {
+                    console.error('Error parsing search data:', error);
+                    console.error('Search data content:', searchDataElement.textContent.substring(0, 500));
+                    showSearchError('Error loading search data');
                 }
             } else {
-                console.warn('Search data is empty');
-                showSearchError('Search data is empty - no content to search');
+                console.error('Search data element not found');
+                showSearchError('Search functionality not available');
             }
-        } catch (error) {
-            console.error('Error parsing search data:', error);
-            console.error('Search data content:', searchDataElement.textContent.substring(0, 500));
-            showSearchError('Error loading search data');
         }
-    } else {
-        console.error('Search data element not found');
-        showSearchError('Search functionality not available');
-    }
-}
 
-// Toggle search overlay
-function openSearch() {
-    searchOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    searchInput.focus();
-    
-    // Reload search index when opening to ensure it's fresh
-    if (searchIndex.length === 0) {
-        loadSearchIndex();
-    }
-}
-
-function closeSearch() {
-    searchOverlay.classList.remove('active');
-    document.body.style.overflow = '';
-    searchInput.value = '';
-    searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
-}
-
-// Perform search
-function performSearch(query) {
-    console.log('Searching for:', query);
-    console.log('Search index length:', searchIndex.length);
-    
-    if (!query.trim()) {
-        searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
-        return;
-    }
-    
-    if (searchIndex.length === 0) {
-        console.warn('Search index is empty');
-        searchResults.innerHTML = '<div class="search-error">No search data available</div>';
-        return;
-    }
-
-    const searchTerm = query.toLowerCase().trim();
-    console.log('Search term:', searchTerm);
-
-    const results = searchIndex.filter(item => {
-        if (!item || !item.title || !item.content) {
-            console.warn('Invalid search item:', item);
-            return false;
-        }
-        
-        const searchableText = (
-            (item.title || '') + ' ' + 
-            (item.content || '') + ' ' + 
-            (item.tags || '') + ' ' + 
-            (item.categories || '')
-        ).toLowerCase();
-        
-        const matches = searchableText.includes(searchTerm);
-        
-        if (matches) {
-            console.log('Match found:', item.title);
-        }
-        
-        return matches;
-    }).slice(0, 10); // Limit to 10 results
-
-    console.log('Found results:', results.length);
-    displayResults(results, query);
-}
-
-// Display results
-function displayResults(results, query) {
-    if (results.length === 0) {
-        searchResults.innerHTML = `
-            <div class="search-no-results">
-                <p>No results found for "${query}"</p>
-                <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                    Try different keywords or check the search index.
-                </p>
-            </div>
-        `;
-    } else {
-        let html = '<div class="search-results-list">';
-        results.forEach(result => {
-            const title = highlightText(result.title, query);
-            const excerpt = highlightText(result.excerpt || result.content.substring(0, 200), query);
+        // Toggle search overlay
+        function openSearch() {
+            console.log('Opening search overlay');
+            searchOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            searchInput.focus();
             
-            html += `
-                <a href="${result.url}" class="search-result-item">
-                    <div class="search-result-content">
-                        <div class="search-result-title">${title}</div>
-                        <div class="search-result-excerpt">${excerpt}</div>
-                        <div class="search-result-url">${result.url}</div>
+            // Reload search index when opening to ensure it's fresh
+            if (searchIndex.length === 0) {
+                loadSearchIndex();
+            }
+        }
+
+        function closeSearch() {
+            console.log('Closing search overlay');
+            searchOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            searchInput.value = '';
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
+        }
+
+        // Perform search
+        function performSearch(query) {
+            console.log('Searching for:', query);
+            console.log('Search index length:', searchIndex.length);
+            
+            if (!query.trim()) {
+                searchResults.innerHTML = '<div class="search-placeholder"><p>Type to search documentation</p></div>';
+                return;
+            }
+            
+            if (searchIndex.length === 0) {
+                console.warn('Search index is empty');
+                searchResults.innerHTML = '<div class="search-error">No search data available</div>';
+                return;
+            }
+
+            const searchTerm = query.toLowerCase().trim();
+            console.log('Search term:', searchTerm);
+
+            const results = searchIndex.filter(item => {
+                if (!item || !item.title || !item.content) {
+                    return false;
+                }
+                
+                const searchableText = (
+                    (item.title || '') + ' ' + 
+                    (item.content || '') + ' ' + 
+                    (item.tags || '') + ' ' + 
+                    (item.categories || '')
+                ).toLowerCase();
+                
+                return searchableText.includes(searchTerm);
+            }).slice(0, 10);
+
+            console.log('Found results:', results.length);
+            displayResults(results, query);
+        }
+
+        // Display results
+        function displayResults(results, query) {
+            if (results.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-no-results">
+                        <p>No results found for "${query}"</p>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                            Try different keywords or check the search index.
+                        </p>
                     </div>
-                    <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                    </svg>
-                </a>
-            `;
-        });
-        html += '</div>';
-        searchResults.innerHTML = html;
-    }
-}
+                `;
+            } else {
+                let html = '<div class="search-results-list">';
+                results.forEach(result => {
+                    const title = highlightText(result.title, query);
+                    const excerpt = highlightText(result.excerpt || result.content.substring(0, 200), query);
+                    
+                    html += `
+                        <a href="${result.url}" class="search-result-item">
+                            <div class="search-result-content">
+                                <div class="search-result-title">${title}</div>
+                                <div class="search-result-excerpt">${excerpt}</div>
+                                <div class="search-result-url">${result.url}</div>
+                            </div>
+                            <svg class="search-result-arrow" width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </a>
+                    `;
+                });
+                html += '</div>';
+                searchResults.innerHTML = html;
+            }
+        }
 
-// Highlight matching text
-function highlightText(text, query) {
-    if (!query.trim() || !text) return text || '';
-    try {
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<mark>$1</mark>');
-    } catch (error) {
-        console.error('Error highlighting text:', error);
-        return text || '';
-    }
-}
+        // Highlight matching text
+        function highlightText(text, query) {
+            if (!query.trim() || !text) return text || '';
+            try {
+                const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                return text.replace(regex, '<mark>$1</mark>');
+            } catch (error) {
+                console.error('Error highlighting text:', error);
+                return text || '';
+            }
+        }
 
-function showSearchError(message) {
-    searchResults.innerHTML = `<div class="search-error">${message}</div>`;
-}
+        function showSearchError(message) {
+            searchResults.innerHTML = `<div class="search-error">${message}</div>`;
+        }
+
+        // Event listeners for search
+        if (searchToggle) {
+            searchToggle.addEventListener('click', openSearch);
+            console.log('Search toggle event listener added');
+        } else {
+            console.error('Search toggle button not found');
+        }
+
+        if (searchClose) {
+            searchClose.addEventListener('click', closeSearch);
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                performSearch(this.value);
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSearch();
+                }
+            });
+        }
+
+        // Close overlay when clicking on backdrop
+        if (searchOverlay) {
+            searchOverlay.addEventListener('click', function(e) {
+                if (e.target === searchOverlay) {
+                    closeSearch();
+                }
+            });
+        }
+
+        // Load search index initially
+        loadSearchIndex();
 
         // Your existing JavaScript for mobile nav, dropdowns, etc.
         const hamburger = document.querySelector('.hamburger');
