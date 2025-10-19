@@ -1,3 +1,10 @@
+<!-- Search Debug Info -->
+<div style="display: none;" id="searchDebug">
+    Pages: {{ site.pages.size }}<br>
+    Posts: {{ site.posts.size }}<br>
+    Collections: {% for collection in site.collections %}{{ collection.label }} ({{ collection.docs.size }}), {% endfor %}
+</div>
+
 <script type="application/json" id="searchData">
 [
     {% for page in site.pages %}
@@ -5,8 +12,8 @@
     {
         "title": "{{ page.title | default: page.name | escape }}",
         "url": "{{ page.url | relative_url }}",
-        "content": "{{ page.content | strip_html | normalize_whitespace | escape }}",
-        "excerpt": "{{ page.excerpt | default: page.content | strip_html | normalize_whitespace | escape | truncate: 200 }}"
+        "content": "{{ page.content | strip_html | normalize_whitespace | escape | remove: '"' }}",
+        "excerpt": "{{ page.excerpt | default: page.content | strip_html | normalize_whitespace | escape | remove: '"' | truncate: 200 }}"
     }{% unless forloop.last %},{% endunless %}
     {% endunless %}
     {% endfor %}
@@ -17,8 +24,8 @@
     {
         "title": "{{ post.title | escape }}",
         "url": "{{ post.url | relative_url }}",
-        "content": "{{ post.content | strip_html | normalize_whitespace | escape }}",
-        "excerpt": "{{ post.excerpt | default: post.content | strip_html | normalize_whitespace | escape | truncate: 200 }}",
+        "content": "{{ post.content | strip_html | normalize_whitespace | escape | remove: '"' }}",
+        "excerpt": "{{ post.excerpt | default: post.content | strip_html | normalize_whitespace | escape | remove: '"' | truncate: 200 }}",
         "tags": "{{ post.tags | join: ', ' | escape }}",
         "categories": "{{ post.categories | join: ', ' | escape }}"
     }{% unless forloop.last %},{% endunless %}
