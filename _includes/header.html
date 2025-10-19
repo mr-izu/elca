@@ -101,83 +101,75 @@
         let lunrIndex = null;
         let searchData = {};
         let searchInitialized = false;
-
-        // Initialize search
-        function initSearch() {
-            if (searchInitialized) return;
+// Initialize search
+function initSearch() {
+    if (searchInitialized) return;
+    
+    console.log('Initializing search...');
+    
+    // Load search data
+    fetch('{{ "/assets/js/search-data.json" | relative_url }}?v=' + Date.now())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(text => {
+            console.log('Raw response received');
             
-            console.log('Initializing search...');
+            // Clean the response - remove Liquid front matter
+            let cleanText = text.trim();
             
-            // Load search data
-            fetch('{{ "/assets/js/search-data.json" | relative_url }}?v=' + Date.now())
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(text => {
-                    console.log('Raw response received, length:', text.length);
-                    
-                    // Clean the response - remove any Liquid template code
-                    let cleanText = text.trim();
-                    
-                    // Remove Liquid front matter if present
-                    if (cleanText.startsWith('---')) {
-                        const parts = cleanText.split('---');
-                        cleanText = parts[parts.length - 1].trim();
-                        console.log('Removed front matter, cleaned length:', cleanText.length);
-                    }
-                    
-                    // Try to parse JSON
-                    try {
-                        const data = JSON.parse(cleanText);
-                        console.log('JSON parsed successfully, items:', Object.keys(data).length);
-                        searchData = data;
-                        
-                        // Build Lunr index
-                        lunrIndex = lunr(function() {
-                            this.ref('id');
-                            this.field('title', { boost: 10 });
-                            this.field('content', { boost: 2 });
-                            this.field('doc', { boost: 5 });
-                            
-                            // Add documents to index
-                            for (const id in searchData) {
-                                const item = searchData[id];
-                                this.add({
-                                    id: id,
-                                    title: item.title || '',
-                                    content: item.content || '',
-                                    doc: item.doc || ''
-                                });
-                            }
-                        });
-                        
-                        searchInitialized = true;
-                        console.log('Lunr search initialized successfully');
-                        
-                    } catch (parseError) {
-                        console.error('JSON parse error:', parseError);
-                        console.error('Problematic JSON text:', cleanText.substring(0, 500));
-                        throw new Error('Invalid JSON format in search data: ' + parseError.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to load search data:', error);
-                    searchResults.innerHTML = `
-                        <div class="search-error">
-                            <p>Search temporarily unavailable</p>
-                            <p style="font-size: 0.8rem; margin-top: 0.5rem;">
-                                Error: ${error.message}
-                            </p>
-                            <p style="font-size: 0.7rem; margin-top: 0.5rem;">
-                                Check browser console for details.
-                            </p>
-                        </div>
-                    `;
-                });
-        }
+            // Remove everything before the first { and after the last }
+            const firstBrace = cleanText.indexOf('{');
+            const lastBrace = cleanText.lastIndexOf('}');
+            
+            if (firstBrace === -1 || lastBrace === -1) {
+                throw new Error('No JSON object found in response');
+            }
+            
+            cleanText = cleanText.substring(firstBrace, lastBrace + 1);
+            console.log('Cleaned JSON length:', cleanText.length);
+            
+            // Parse JSON
+            const data = JSON.parse(cleanText);
+            console.log('Search data loaded:', Object.keys(data).length, 'items');
+            searchData = data;
+            
+            // Build Lunr index
+            lunrIndex = lunr(function() {
+                this.ref('id');
+                this.field('title', { boost: 10 });
+                this.field('content', { boost: 2 });
+                this.field('doc', { boost: 5 });
+                
+                // Add documents to index
+                for (const id in searchData) {
+                    this.add({
+                        id: id,
+                        title: searchData[id].title,
+                        content: searchData[id].content,
+                        doc: searchData[id].doc
+                    });
+                }
+            });
+            
+            searchInitialized = true;
+            console.log('Lunr search initialized successfully');
+        })
+        .catch(error => {
+            console.error('Failed to load search data:', error);
+            searchResults.innerHTML = `
+                <div class="search-error">
+                    <p>Search temporarily unavailable</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">
+                        Error: ${error.message}
+                    </p>
+                </div>
+            `;
+        });
+}
 
         // Toggle search overlay
         function openSearch() {
