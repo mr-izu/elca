@@ -46,7 +46,7 @@
                     {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
                     {% if current_dropdown %}
                     <li class="nav-item breadcrumb-item">
-                        <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="closeDropdownSection()">
+                        <a href="{{ '/' | relative_url }}" class="nav-link breadcrumb-link">
                             ← {{ current_dropdown.title }}
                         </a>
                     </li>
@@ -142,12 +142,6 @@
 </header>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Breadcrumb navigation functionality
-    function closeDropdownSection() {
-        // Navigate back to home page when clicking breadcrumb
-        window.location.href = '/';
-    }
-
     // Fix for active state - ensure only current page is active
     function fixActiveStates() {
         const currentPath = window.location.pathname;
@@ -470,8 +464,5 @@ document.addEventListener('DOMContentLoaded', function() {
         
         themeToggle.addEventListener('click', toggleTheme);
     }
-
-    // Make closeDropdownSection available globally
-    window.closeDropdownSection = closeDropdownSection;
 });
 </script>
