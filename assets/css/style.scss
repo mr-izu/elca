@@ -1,5 +1,6 @@
 ---
 ---
+
 :root {
     // Light mode (Next.js inspired)
     --background: #ffffff;
@@ -265,6 +266,25 @@ body {
     position: relative;
 }
 
+// Breadcrumb navigation styles
+.breadcrumb-item {
+    .breadcrumb-link {
+        color: var(--accent-color) !important;
+        font-weight: 600;
+        background: var(--accent);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:hover {
+            background: var(--accent-color);
+            color: var(--primary-foreground) !important;
+            transform: translateX(-2px);
+        }
+    }
+}
+
+// Active page navigation styles
 .nav-link {
     text-decoration: none;
     color: var(--text-dark);
@@ -276,17 +296,30 @@ body {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-}
+    position: relative;
 
-.nav-link:hover {
-    color: var(--primary-color);
-    background: var(--accent);
-}
+    &:hover {
+        color: var(--primary-color);
+        background: var(--accent);
+    }
 
-.nav-link.active {
-    color: var(--primary-color);
-    background: var(--accent);
-    font-weight: 600;
+    // Only apply active styles to the actual current page
+    &.active {
+        color: var(--accent-color);
+        background: var(--accent);
+        font-weight: 600;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            right: 0.75rem;
+            bottom: -1px;
+            height: 2px;
+            background: var(--accent-color);
+            border-radius: 1px;
+        }
+    }
 }
 
 /* Dropdown Menu */
@@ -332,19 +365,41 @@ body {
     margin: 0;
 }
 
+// Dropdown active item styles
 .dropdown-menu a {
     display: block;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 0.75rem 1.5rem;
     text-decoration: none;
     color: var(--popover-foreground);
     font-size: 0.9rem;
     transition: var(--transition);
     border-radius: calc(var(--border-radius) - 2px);
-}
+    position: relative;
+    border-left: 2px solid transparent;
 
-.dropdown-menu a:hover {
-    background: var(--accent);
-    color: var(--accent-foreground);
+    &:hover {
+        background: var(--accent);
+        color: var(--accent-foreground);
+    }
+
+    &.dropdown-active {
+        color: var(--accent-color);
+        background: var(--accent);
+        font-weight: 600;
+        border-left-color: var(--accent-color);
+        
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+    }
 }
 
 // Hamburger menu
@@ -736,11 +791,27 @@ mark {
         margin: 0;
     }
     
+    .breadcrumb-item {
+        .breadcrumb-link {
+            margin: 0.5rem 1.5rem;
+            width: calc(100% - 3rem);
+        }
+    }
+    
     .nav-link {
         display: flex;
         padding: 1rem 1.5rem;
         border-radius: 0;
         justify-content: space-between;
+        
+        &.active {
+            &::before {
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 2px;
+            }
+        }
     }
     
     .dropdown-menu {
@@ -759,6 +830,16 @@ mark {
     
     .dropdown.active .dropdown-menu {
         display: block;
+    }
+    
+    .dropdown-menu a {
+        padding-left: 2rem;
+        
+        &.dropdown-active {
+            &::before {
+                left: 1rem;
+            }
+        }
     }
     
     .search-toggle,
@@ -956,106 +1037,5 @@ pre {
         background: none;
         padding: 0;
         color: inherit;
-    }
-}
-
-// Active page navigation styles
-.nav-link {
-    text-decoration: none;
-    color: var(--text-dark);
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: var(--transition);
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    position: relative;
-
-    &:hover {
-        color: var(--primary-color);
-        background: var(--accent);
-    }
-
-    &.active {
-        color: var(--accent-color);
-        background: var(--accent);
-        font-weight: 600;
-        
-        &::before {
-            content: '';
-            position: absolute;
-            left: 0.75rem;
-            right: 0.75rem;
-            bottom: -1px;
-            height: 2px;
-            background: var(--accent-color);
-            border-radius: 1px;
-        }
-    }
-}
-
-// Dropdown active item styles
-.dropdown-menu a {
-    display: block;
-    padding: 0.75rem 1rem 0.75rem 1.5rem;
-    text-decoration: none;
-    color: var(--popover-foreground);
-    font-size: 0.9rem;
-    transition: var(--transition);
-    border-radius: calc(var(--border-radius) - 2px);
-    position: relative;
-    border-left: 2px solid transparent;
-
-    &:hover {
-        background: var(--accent);
-        color: var(--accent-foreground);
-    }
-
-    &.dropdown-active {
-        color: var(--accent-color);
-        background: var(--accent);
-        font-weight: 600;
-        border-left-color: var(--accent-color);
-        
-        &::before {
-            content: '';
-            position: absolute;
-            left: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 4px;
-            background: var(--accent-color);
-            border-radius: 50%;
-        }
-    }
-}
-
-// Mobile navigation active styles
-@media (max-width: 768px) {
-    .nav-link {
-        padding: 1rem 1.5rem;
-        border-radius: 0;
-        
-        &.active {
-            &::before {
-                left: 0;
-                right: 0;
-                bottom: 0;
-                height: 2px;
-            }
-        }
-    }
-    
-    .dropdown-menu a {
-        padding-left: 2rem;
-        
-        &.dropdown-active {
-            &::before {
-                left: 1rem;
-            }
-        }
     }
 }
