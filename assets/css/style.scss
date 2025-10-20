@@ -1,52 +1,51 @@
 ---
 ---
 
-// Next.js Inspired Variables
+// Next.js Inspired Variables (Compatible with Jekyll 3.10.0)
 :root {
     // Light mode (Next.js inspired)
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+    --card: #ffffff;
+    --card-foreground: #0a0a0a;
+    --popover: #ffffff;
+    --popover-foreground: #0a0a0a;
+    --primary: #171717;
+    --primary-foreground: #fafafa;
+    --secondary: #f5f5f5;
+    --secondary-foreground: #171717;
+    --muted: #f5f5f5;
+    --muted-foreground: #737373;
+    --accent: #f5f5f5;
+    --accent-foreground: #171717;
+    --destructive: #dc2626;
+    --destructive-foreground: #fafafa;
+    --border: #e5e5e5;
+    --input: #e5e5e5;
+    --ring: #0a0a0a;
     
     // Semantic colors
-    --bg-white: hsl(var(--background));
-    --bg-light: hsl(var(--secondary));
-    --bg-lighter: hsl(var(--muted));
-    --text-dark: hsl(var(--foreground));
-    --text-light: hsl(var(--muted-foreground));
-    --text-white: hsl(var(--primary-foreground));
-    --border-light: hsl(var(--border));
-    --primary-color: hsl(var(--primary));
-    --primary-light: color-mix(in srgb, hsl(var(--primary)) 80%, white);
-    --primary-dark: color-mix(in srgb, hsl(var(--primary)) 120%, black);
-    --accent-color: 221.2 83.2% 53.3%;
+    --bg-white: var(--background);
+    --bg-light: var(--secondary);
+    --bg-lighter: var(--muted);
+    --text-dark: var(--foreground);
+    --text-light: var(--muted-foreground);
+    --text-white: var(--primary-foreground);
+    --border-light: var(--border);
+    --primary-color: var(--primary);
+    --primary-light: #404040;
+    --primary-dark: #000000;
+    --accent-color: #2563eb;
     
     // Gradients
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(221.2 83.2% 53.3%));
-    --gradient-subtle: linear-gradient(135deg, hsl(var(--primary) / 0.03), hsl(221.2 83.2% 53.3% / 0.03));
+    --gradient-primary: linear-gradient(135deg, var(--primary), #2563eb);
+    --gradient-subtle: linear-gradient(135deg, rgba(23, 23, 23, 0.03), rgba(37, 99, 235, 0.03));
     
     // Shadows
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     
     // Border radius
     --border-radius: 0.5rem;
@@ -59,46 +58,46 @@
 
 [data-theme="dark"] {
     // Dark mode (Next.js inspired)
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: #0a0a0a;
+    --foreground: #fafafa;
+    --card: #0a0a0a;
+    --card-foreground: #fafafa;
+    --popover: #0a0a0a;
+    --popover-foreground: #fafafa;
+    --primary: #fafafa;
+    --primary-foreground: #171717;
+    --secondary: #262626;
+    --secondary-foreground: #fafafa;
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+    --accent: #262626;
+    --accent-foreground: #fafafa;
+    --destructive: #7f1d1d;
+    --destructive-foreground: #fafafa;
+    --border: #404040;
+    --input: #404040;
+    --ring: #d4d4d4;
     
     // Update semantic colors for dark mode
-    --bg-white: hsl(var(--background));
-    --bg-light: hsl(var(--secondary));
-    --bg-lighter: hsl(var(--muted));
-    --text-dark: hsl(var(--foreground));
-    --text-light: hsl(var(--muted-foreground));
-    --text-white: hsl(var(--primary-foreground));
-    --border-light: hsl(var(--border));
-    --primary-color: hsl(var(--primary));
-    --primary-light: color-mix(in srgb, hsl(var(--primary)) 80%, hsl(var(--background)));
-    --primary-dark: color-mix(in srgb, hsl(var(--primary)) 120%, hsl(var(--foreground)));
+    --bg-white: var(--background);
+    --bg-light: var(--secondary);
+    --bg-lighter: var(--muted);
+    --text-dark: var(--foreground);
+    --text-light: var(--muted-foreground);
+    --text-white: var(--primary-foreground);
+    --border-light: var(--border);
+    --primary-color: var(--primary);
+    --primary-light: #d4d4d4;
+    --primary-dark: #ffffff;
     
     // Update gradients for dark mode
-    --gradient-subtle: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(221.2 83.2% 53.3% / 0.1));
+    --gradient-subtle: linear-gradient(135deg, rgba(250, 250, 250, 0.1), rgba(37, 99, 235, 0.1));
     
     // Update shadows for dark mode
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -1px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -2px rgb(0 0 0 / 0.3);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 10px 10px -5px rgb(0 0 0 / 0.3);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 // Base styles
@@ -115,8 +114,8 @@ html {
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     line-height: 1.6;
-    color: hsl(var(--foreground));
-    background-color: hsl(var(--background));
+    color: var(--text-dark);
+    background-color: var(--bg-white);
     overflow-x: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -134,22 +133,26 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    background: hsl(var(--background) / 0.8);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(16px);
-    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    border-bottom: 1px solid rgba(229, 229, 229, 0.5);
     z-index: 1000;
     transition: var(--transition);
 }
 
 [data-theme="dark"] .header {
-    background: hsl(var(--background) / 0.8);
-    border-bottom-color: hsl(var(--border) / 0.3);
+    background: rgba(10, 10, 10, 0.8);
+    border-bottom-color: rgba(64, 64, 64, 0.3);
 }
 
 .header.scrolled {
-    background: hsl(var(--background) / 0.95);
-    border-bottom-color: hsl(var(--border));
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom-color: var(--border-light);
     box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .header.scrolled {
+    background: rgba(10, 10, 10, 0.95);
 }
 
 .nav-container {
@@ -163,7 +166,7 @@ body {
     display: flex;
     align-items: center;
     text-decoration: none;
-    color: hsl(var(--foreground));
+    color: var(--text-dark);
     font-weight: 700;
     font-size: 1.5rem;
     transition: var(--transition);
@@ -176,8 +179,8 @@ body {
 }
 
 .logo span {
-    color: hsl(var(--primary));
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(221.2 83.2% 53.3%));
+    color: var(--primary-color);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -198,14 +201,14 @@ body {
     padding: 0.5rem;
     border-radius: var(--border-radius);
     transition: var(--transition);
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     display: flex;
     align-items: center;
     justify-content: center;
     
     &:hover {
-        background: hsl(var(--accent));
-        color: hsl(var(--accent-foreground));
+        background: var(--accent);
+        color: var(--accent-foreground);
     }
     
     svg {
@@ -222,14 +225,14 @@ body {
     padding: 0.5rem;
     border-radius: var(--border-radius);
     transition: var(--transition);
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     display: flex;
     align-items: center;
     justify-content: center;
     
     &:hover {
-        background: hsl(var(--accent));
-        color: hsl(var(--accent-foreground));
+        background: var(--accent);
+        color: var(--accent-foreground);
     }
     
     .sun-icon, .moon-icon {
@@ -266,7 +269,7 @@ body {
 
 .nav-link {
     text-decoration: none;
-    color: hsl(var(--foreground));
+    color: var(--text-dark);
     font-weight: 500;
     font-size: 0.95rem;
     transition: var(--transition);
@@ -278,13 +281,13 @@ body {
 }
 
 .nav-link:hover {
-    color: hsl(var(--primary));
-    background: hsl(var(--accent));
+    color: var(--primary-color);
+    background: var(--accent);
 }
 
 .nav-link.active {
-    color: hsl(var(--primary));
-    background: hsl(var(--accent));
+    color: var(--primary-color);
+    background: var(--accent);
     font-weight: 600;
 }
 
@@ -306,12 +309,12 @@ body {
     position: absolute;
     top: 100%;
     left: 0;
-    background: hsl(var(--popover));
-    color: hsl(var(--popover-foreground));
+    background: var(--popover);
+    color: var(--popover-foreground);
     min-width: 220px;
     box-shadow: var(--shadow-lg);
     border-radius: var(--border-radius);
-    border: 1px solid hsl(var(--border));
+    border: 1px solid var(--border);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -335,15 +338,15 @@ body {
     display: block;
     padding: 0.75rem 1rem;
     text-decoration: none;
-    color: hsl(var(--popover-foreground));
+    color: var(--popover-foreground);
     font-size: 0.9rem;
     transition: var(--transition);
     border-radius: calc(var(--border-radius) - 2px);
 }
 
 .dropdown-menu a:hover {
-    background: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+    background: var(--accent);
+    color: var(--accent-foreground);
 }
 
 // Hamburger menu
@@ -356,14 +359,14 @@ body {
     transition: var(--transition);
     
     &:hover {
-        background: hsl(var(--accent));
+        background: var(--accent);
     }
 }
 
 .bar {
     width: 22px;
     height: 2px;
-    background: hsl(var(--foreground));
+    background: var(--text-dark);
     margin: 3px 0;
     transition: var(--transition);
     border-radius: 1px;
@@ -388,7 +391,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: hsl(0 0% 0% / 0.8);
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(8px);
     z-index: 2000;
     display: none;
@@ -408,10 +411,10 @@ body {
     transform: translateX(-50%);
     width: 90%;
     max-width: 600px;
-    background: hsl(var(--popover));
+    background: var(--popover);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-xl);
-    border: 1px solid hsl(var(--border));
+    border: 1px solid var(--border);
     overflow: hidden;
     max-height: 70vh;
     display: flex;
@@ -420,7 +423,7 @@ body {
 
 .search-header {
     padding: 1.5rem;
-    border-bottom: 1px solid hsl(var(--border));
+    border-bottom: 1px solid var(--border);
 }
 
 .search-input-container {
@@ -431,7 +434,7 @@ body {
     .search-icon {
         position: absolute;
         left: 1rem;
-        color: hsl(var(--muted-foreground));
+        color: var(--text-light);
         width: 20px;
         height: 20px;
         z-index: 1;
@@ -441,22 +444,22 @@ body {
 #searchInput {
     flex: 1;
     padding: 1rem 1rem 1rem 3rem;
-    border: 1px solid hsl(var(--input));
+    border: 1px solid var(--input);
     border-radius: var(--border-radius);
     font-size: 1rem;
-    background: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background: var(--background);
+    color: var(--text-dark);
     transition: var(--transition);
     font-family: inherit;
     
     &:focus {
         outline: none;
-        border-color: hsl(var(--ring));
-        box-shadow: 0 0 0 2px hsl(var(--ring) / 0.1);
+        border-color: var(--ring);
+        box-shadow: 0 0 0 2px rgba(10, 10, 10, 0.1);
     }
     
     &::placeholder {
-        color: hsl(var(--muted-foreground));
+        color: var(--text-light);
     }
 }
 
@@ -467,7 +470,7 @@ body {
     border: none;
     cursor: pointer;
     padding: 0.5rem;
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     border-radius: var(--border-radius);
     transition: var(--transition);
     display: flex;
@@ -475,8 +478,8 @@ body {
     justify-content: center;
     
     &:hover {
-        background: hsl(var(--accent));
-        color: hsl(var(--accent-foreground));
+        background: var(--accent);
+        color: var(--accent-foreground);
     }
     
     svg {
@@ -489,7 +492,7 @@ body {
     flex: 1;
     overflow-y: auto;
     max-height: 400px;
-    background: hsl(var(--popover));
+    background: var(--popover);
 }
 
 .search-placeholder,
@@ -497,7 +500,7 @@ body {
 .search-error {
     padding: 3rem 2rem;
     text-align: center;
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     font-style: italic;
 }
 
@@ -532,9 +535,9 @@ body {
     
     &:hover,
     &:focus {
-        background: hsl(var(--accent));
-        color: hsl(var(--accent-foreground));
-        border-color: hsl(var(--border));
+        background: var(--accent);
+        color: var(--accent-foreground);
+        border-color: var(--border);
         transform: translateX(2px);
     }
     
@@ -551,12 +554,12 @@ body {
 .search-result-title {
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: hsl(var(--foreground));
+    color: var(--text-dark);
     line-height: 1.4;
     font-size: 0.95rem;
     
     mark {
-        background: linear-gradient(120deg, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.2) 100%);
+        background: linear-gradient(120deg, rgba(23, 23, 23, 0.2) 0%, rgba(23, 23, 23, 0.2) 100%);
         color: inherit;
         padding: 0.1rem 0.2rem;
         border-radius: 3px;
@@ -566,12 +569,12 @@ body {
 
 .search-result-excerpt {
     font-size: 0.875rem;
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     margin-bottom: 0.5rem;
     line-height: 1.5;
     
     mark {
-        background: linear-gradient(120deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--primary) / 0.3) 100%);
+        background: linear-gradient(120deg, rgba(23, 23, 23, 0.3) 0%, rgba(23, 23, 23, 0.3) 100%);
         color: inherit;
         padding: 0.1rem 0.2rem;
         border-radius: 3px;
@@ -581,9 +584,9 @@ body {
 
 .search-result-url {
     font-size: 0.75rem;
-    color: hsl(var(--primary));
+    color: var(--primary-color);
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    background: hsl(var(--accent));
+    background: var(--accent);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
     display: inline-block;
@@ -591,7 +594,7 @@ body {
 
 .search-result-arrow {
     flex-shrink: 0;
-    color: hsl(var(--muted-foreground));
+    color: var(--text-light);
     transition: var(--transition);
     margin-top: 0.25rem;
     
@@ -603,13 +606,13 @@ body {
 
 .search-result-item:hover .search-result-arrow,
 .search-result-item:focus .search-result-arrow {
-    color: hsl(var(--primary));
+    color: var(--primary-color);
     transform: translateX(2px);
 }
 
 // Search result highlighting
 mark {
-    background: linear-gradient(120deg, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.2) 100%);
+    background: linear-gradient(120deg, rgba(23, 23, 23, 0.2) 0%, rgba(23, 23, 23, 0.2) 100%);
     color: inherit;
     padding: 0.1rem 0.3rem;
     border-radius: 4px;
@@ -617,7 +620,7 @@ mark {
 }
 
 [data-theme="dark"] mark {
-    background: linear-gradient(120deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--primary) / 0.3) 100%);
+    background: linear-gradient(120deg, rgba(250, 250, 250, 0.3) 0%, rgba(250, 250, 250, 0.3) 100%);
 }
 
 // Main content area
@@ -636,14 +639,14 @@ mark {
     h1 {
         font-size: 3.5rem;
         margin-bottom: 1.5rem;
-        color: hsl(var(--foreground));
+        color: var(--text-dark);
         font-weight: 700;
         line-height: 1.1;
     }
     
     p {
         font-size: 1.25rem;
-        color: hsl(var(--muted-foreground));
+        color: var(--text-light);
         max-width: 600px;
         margin: 0 auto;
         line-height: 1.6;
@@ -665,13 +668,13 @@ mark {
         h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
-            color: hsl(var(--foreground));
+            color: var(--text-dark);
             font-weight: 700;
             line-height: 1.2;
         }
         
         time {
-            color: hsl(var(--muted-foreground));
+            color: var(--text-light);
             font-size: 0.9rem;
         }
     }
@@ -679,16 +682,16 @@ mark {
     .post-content {
         font-size: 1.125rem;
         line-height: 1.8;
-        color: hsl(var(--foreground));
+        color: var(--text-dark);
         
         h1, h2, h3, h4, h5, h6 {
-            color: hsl(var(--foreground));
+            color: var(--text-dark);
             margin-top: 2rem;
             margin-bottom: 1rem;
         }
         
         p {
-            color: hsl(var(--foreground));
+            color: var(--text-dark);
             margin-bottom: 1.5rem;
         }
     }
@@ -698,10 +701,10 @@ mark {
 .site-footer {
     text-align: center;
     padding: 3rem 0;
-    border-top: 1px solid hsl(var(--border));
-    color: hsl(var(--muted-foreground));
+    border-top: 1px solid var(--border);
+    color: var(--text-light);
     margin-top: 4rem;
-    background: hsl(var(--secondary));
+    background: var(--secondary);
 }
 
 // Responsive Design
@@ -715,12 +718,12 @@ mark {
         top: 70px;
         right: -100%;
         flex-direction: column;
-        background: hsl(var(--popover));
+        background: var(--popover);
         width: 80%;
         max-width: 300px;
         height: calc(100vh - 70px);
         box-shadow: var(--shadow-xl);
-        border-left: 1px solid hsl(var(--border));
+        border-left: 1px solid var(--border);
         transition: var(--transition);
         padding: 1rem 0;
         align-items: stretch;
@@ -748,7 +751,7 @@ mark {
         visibility: visible;
         transform: none;
         box-shadow: none;
-        background: hsl(var(--accent));
+        background: var(--accent);
         width: 100%;
         display: none;
         border: none;
@@ -892,16 +895,16 @@ mark {
 }
 
 .search-results::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
+    background: var(--muted);
 }
 
 .search-results::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: var(--border);
     border-radius: 3px;
 }
 
 .search-results::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: var(--text-light);
 }
 
 // Remove old search container styles (these are conflicting)
@@ -918,14 +921,14 @@ mark {
 .theme-toggle:focus,
 .search-close:focus,
 .search-result-item:focus {
-    outline: 2px solid hsl(var(--ring));
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
 }
 
 #searchInput:focus {
     outline: none;
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.1);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px rgba(10, 10, 10, 0.1);
 }
 
 // Smooth theme transitions
@@ -935,19 +938,19 @@ mark {
 
 // Code blocks and inline code (common in documentation)
 code {
-    background: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
+    background: var(--muted);
+    color: var(--text-light);
     padding: 0.2rem 0.4rem;
-    border-radius: calc(var(--radius) - 2px);
+    border-radius: calc(var(--border-radius) - 2px);
     font-size: 0.875em;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 pre {
-    background: hsl(var(--muted));
-    color: hsl(var(--muted-foreground));
+    background: var(--muted);
+    color: var(--text-light);
     padding: 1rem;
-    border-radius: var(--radius);
+    border-radius: var(--border-radius);
     overflow-x: auto;
     margin: 1.5rem 0;
     
