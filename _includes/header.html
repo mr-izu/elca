@@ -46,9 +46,9 @@
     {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
     {% if current_dropdown %}
     <li class="nav-item breadcrumb-item">
-        <button class="nav-link breadcrumb-link back-to-main" onclick="showMainNavigation()">
-            ← {{ current_dropdown.title }}
-        </button>
+    <button class="nav-link breadcrumb-link back-to-main" onclick="toggleBreadcrumbView()">
+        ← {{ current_dropdown.title }}
+    </button>
     </li>
     
     {% comment %} Show only the current dropdown's items {% endcomment %}
@@ -463,6 +463,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         themeToggle.addEventListener('click', toggleTheme);
+    }
+});
+    function toggleBreadcrumbView() {
+    // Remove the breadcrumb mode from session storage
+    sessionStorage.removeItem('breadcrumbMode');
+    // Reload to show main navigation
+    window.location.reload();
+}
+
+// On page load, check if we should be in breadcrumb mode
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const isDropdownPage = {% if current_dropdown %}true{% else %}false{% endif %};
+    
+    if (isDropdownPage && !sessionStorage.getItem('breadcrumbMode')) {
+        sessionStorage.setItem('breadcrumbMode', 'true');
     }
 });
 </script>
