@@ -29,83 +29,83 @@
                 </button>
 
                 <!-- Navigation Menu with Breadcrumbs -->
-                <ul class="nav-menu">
-                    {% comment %} Determine if we're in a dropdown section and which one {% endcomment %}
-                    {% assign current_dropdown = nil %}
-                    {% for link in site.navigation %}
-                        {% if link.dropdown %}
-                            {% for sublink in link.dropdown %}
-                                {% assign sublink_url = sublink.url | relative_url %}
-                                {% if page.url == sublink_url or page.url contains sublink.url %}
-                                    {% assign current_dropdown = link %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
+<ul class="nav-menu">
+    {% comment %} Determine if we're in a dropdown section and which one {% endcomment %}
+    {% assign current_dropdown = nil %}
+    {% for link in site.navigation %}
+        {% if link.dropdown %}
+            {% for sublink in link.dropdown %}
+                {% assign sublink_url = sublink.url | relative_url %}
+                {% if page.url == sublink_url or page.url contains sublink.url %}
+                    {% assign current_dropdown = link %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
 
-                    {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
-                    {% if current_dropdown %}
-                    <li class="nav-item breadcrumb-item">
-                        <a href="{{ '/' | relative_url }}" class="nav-link breadcrumb-link">
-                            ← {{ current_dropdown.title }}
-                        </a>
-                    </li>
-                    
-                    {% comment %} Show only the current dropdown's items {% endcomment %}
-                    {% for link in site.navigation %}
-                        {% if link.title == current_dropdown.title %}
-                            {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            <li class="nav-item">
-                                <a href="{{ sublink_url }}" class="nav-link {% if page.url == sublink_url %}active{% endif %}">
-                                    {{ sublink.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
+    {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
+    {% if current_dropdown %}
+    <li class="nav-item breadcrumb-item">
+        <button class="nav-link breadcrumb-link back-to-main" onclick="showMainNavigation()">
+            ← {{ current_dropdown.title }}
+        </button>
+    </li>
+    
+    {% comment %} Show only the current dropdown's items {% endcomment %}
+    {% for link in site.navigation %}
+        {% if link.title == current_dropdown.title %}
+            {% for sublink in link.dropdown %}
+            {% assign sublink_url = sublink.url | relative_url %}
+            <li class="nav-item">
+                <a href="{{ sublink_url }}" class="nav-link {% if page.url == sublink_url %}active{% endif %}">
+                    {{ sublink.title }}
+                </a>
+            </li>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
 
-                    {% else %}
-                    {% comment %} Show full navigation when not in dropdown section {% endcomment %}
-                    {% for link in site.navigation %}
-                    {% assign link_url = link.url | relative_url %}
-                    {% assign page_url = page.url | relative_url %}
-                    
-                    {% if link.dropdown %}
-                    <li class="nav-item dropdown">
-                        {% comment %} Check if any dropdown item is active {% endcomment %}
-                        {% assign dropdown_active = false %}
-                        {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            {% if page_url == sublink_url %}
-                                {% assign dropdown_active = true %}
-                            {% endif %}
-                        {% endfor %}
-                        
-                        <a href="javascript:void(0)" class="nav-link {% if dropdown_active %}active{% endif %}">
-                            {{ link.title }} <span class="dropdown-arrow">▼</span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            <li>
-                                <a href="{{ sublink_url }}" class="{% if page_url == sublink_url %}dropdown-active{% endif %}">
-                                    {{ sublink.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a href="{{ link_url }}" class="nav-link {% if page_url == link_url %}active{% endif %}">
-                            {{ link.title }}
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% endfor %}
-                    {% endif %}
-                </ul>
+    {% else %}
+    {% comment %} Show full navigation when not in dropdown section {% endcomment %}
+    {% for link in site.navigation %}
+    {% assign link_url = link.url | relative_url %}
+    {% assign page_url = page.url | relative_url %}
+    
+    {% if link.dropdown %}
+    <li class="nav-item dropdown">
+        {% comment %} Check if any dropdown item is active {% endcomment %}
+        {% assign dropdown_active = false %}
+        {% for sublink in link.dropdown %}
+            {% assign sublink_url = sublink.url | relative_url %}
+            {% if page_url == sublink_url %}
+                {% assign dropdown_active = true %}
+            {% endif %}
+        {% endfor %}
+        
+        <a href="javascript:void(0)" class="nav-link {% if dropdown_active %}active{% endif %}">
+            {{ link.title }} <span class="dropdown-arrow">▼</span>
+        </a>
+        <ul class="dropdown-menu">
+            {% for sublink in link.dropdown %}
+            {% assign sublink_url = sublink.url | relative_url %}
+            <li>
+                <a href="{{ sublink_url }}" class="{% if page_url == sublink_url %}dropdown-active{% endif %}">
+                    {{ sublink.title }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </li>
+    {% else %}
+    <li class="nav-item">
+        <a href="{{ link_url }}" class="nav-link {% if page_url == link_url %}active{% endif %}">
+            {{ link.title }}
+        </a>
+    </li>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+</ul>
                 
                 <div class="hamburger">
                     <span class="bar"></span>
