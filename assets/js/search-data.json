@@ -11,9 +11,10 @@ search_exclude: true
 {%- for pages in pages_array -%}
   {%- for page in pages -%}
     {%- if page.title and page.search_exclude != true -%}
-      {%- assign page_content = page.content | markdownify | strip_html | normalize_whitespace | truncate: 1500 -%}
+      {%- assign page_content = page.content | markdownify | strip_html | normalize_whitespace | replace: '"', '\\"' -%}
       {%- unless i == 0 -%},{%- endunless -%}
       "{{ i }}": {
+        "id": "{{ i }}",
         "doc": {{ page.title | jsonify }},
         "title": {{ page.title | jsonify }},
         "content": {{ page_content | jsonify }},
