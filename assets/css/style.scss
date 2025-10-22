@@ -266,6 +266,10 @@ body {
     position: relative;
 }
 
+// ============================
+// NEW NAVIGATION STYLES
+// ============================
+
 // Breadcrumb navigation styles
 .breadcrumb-item {
     .breadcrumb-link {
@@ -275,13 +279,88 @@ body {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
         
         &:hover {
             background: var(--accent-color);
             color: var(--primary-foreground) !important;
             transform: translateX(-2px);
+            
+            .back-arrow {
+                transform: translateX(-2px);
+            }
+        }
+        
+        .back-arrow {
+            transition: var(--transition);
+            width: 16px;
+            height: 16px;
         }
     }
+}
+
+// Section title styles
+.section-title {
+    .section-title-link {
+        color: var(--text-light) !important;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-light);
+        margin-bottom: 0.5rem;
+        pointer-events: none;
+        cursor: default;
+        
+        &:hover {
+            background: transparent !important;
+            color: var(--text-light) !important;
+        }
+    }
+}
+
+// Section navigation styles (when in a section)
+.nav-menu:has(.breadcrumb-item) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    width: 280px;
+    max-width: 100%;
+    
+    .nav-item {
+        margin: 0;
+        
+        &:not(.breadcrumb-item):not(.section-title) {
+            .nav-link {
+                padding-left: 2rem;
+                position: relative;
+                
+                &.active {
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        left: 1rem;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 4px;
+                        height: 4px;
+                        background: var(--accent-color);
+                        border-radius: 50%;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Main navigation styles
+.nav-menu:not(:has(.breadcrumb-item)) {
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
 }
 
 // Active page navigation styles
@@ -330,6 +409,7 @@ body {
 .dropdown-arrow {
     font-size: 0.7rem;
     transition: var(--transition);
+    margin-left: 0.25rem;
 }
 
 .dropdown:hover .dropdown-arrow {
@@ -760,7 +840,10 @@ mark {
     background: var(--secondary);
 }
 
-// Responsive Design
+// ============================
+// RESPONSIVE DESIGN
+// ============================
+
 @media (max-width: 768px) {
     .hamburger {
         display: flex;
@@ -781,6 +864,7 @@ mark {
         padding: 1rem 0;
         align-items: stretch;
         gap: 0;
+        overflow-y: auto;
     }
     
     .nav-menu.active {
@@ -791,10 +875,39 @@ mark {
         margin: 0;
     }
     
+    // Mobile breadcrumb styles
     .breadcrumb-item {
         .breadcrumb-link {
-            margin: 0.5rem 1.5rem;
-            width: calc(100% - 3rem);
+            margin: 0.5rem 1rem;
+            width: calc(100% - 2rem);
+        }
+    }
+    
+    // Mobile section title styles
+    .section-title {
+        .section-title-link {
+            margin: 0.5rem 1rem;
+            width: calc(100% - 2rem);
+            padding: 0.75rem 0;
+            border-bottom-color: var(--border);
+        }
+    }
+    
+    // Mobile section navigation styles
+    .nav-menu:has(.breadcrumb-item) {
+        width: 100%;
+        max-width: none;
+        
+        .nav-item:not(.breadcrumb-item):not(.section-title) {
+            .nav-link {
+                margin: 0 1rem;
+                width: calc(100% - 2rem);
+                padding-left: 1.5rem;
+                
+                &.active::before {
+                    left: 0.5rem;
+                }
+            }
         }
     }
     
@@ -826,6 +939,7 @@ mark {
         border: none;
         border-radius: 0;
         margin: 0;
+        padding-left: 1rem;
     }
     
     .dropdown.active .dropdown-menu {
@@ -966,6 +1080,24 @@ mark {
         width: 14px;
         height: 14px;
     }
+    
+    // Mobile navigation adjustments
+    .nav-menu {
+        top: 60px;
+        height: calc(100vh - 60px);
+    }
+    
+    .nav-container {
+        padding: 0.6rem 0;
+    }
+    
+    .logo a {
+        font-size: 1.25rem;
+    }
+    
+    .logo img {
+        height: 32px;
+    }
 }
 
 // Scrollbar styling for search results
@@ -1038,4 +1170,22 @@ pre {
         padding: 0;
         color: inherit;
     }
+}
+
+// Navigation scrollbar for mobile
+.nav-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.nav-menu::-webkit-scrollbar-track {
+    background: var(--muted);
+}
+
+.nav-menu::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+}
+
+.nav-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
 }
