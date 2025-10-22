@@ -46,7 +46,7 @@
                     {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
                     {% if current_dropdown %}
                     <li class="nav-item breadcrumb-item">
-                        <a href="{{ '/' | relative_url }}" class="nav-link breadcrumb-link">
+                        <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showDropdownSection('{{ current_dropdown.title }}')">
                             ← {{ current_dropdown.title }}
                         </a>
                     </li>
@@ -163,6 +163,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeFound = true;
             }
         });
+    }
+
+    // Function to show dropdown section when breadcrumb is clicked
+    function showDropdownSection(sectionTitle) {
+        // Close mobile menu if open
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        if (hamburger && navMenu && window.innerWidth <= 768) {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Remove breadcrumb mode by showing the full navigation
+        const breadcrumbItems = document.querySelectorAll('.breadcrumb-item');
+        breadcrumbItems.forEach(item => {
+            item.style.display = 'none';
+        });
+        
+        // Show all navigation items
+        const allNavItems = document.querySelectorAll('.nav-item');
+        allNavItems.forEach(item => {
+            item.style.display = 'list-item';
+        });
+        
+        // Activate the corresponding dropdown
+        const dropdownLinks = document.querySelectorAll('.dropdown');
+        dropdownLinks.forEach(dropdown => {
+            const link = dropdown.querySelector('.nav-link');
+            if (link.textContent.includes(sectionTitle)) {
+                if (window.innerWidth <= 768) {
+                    dropdown.classList.add('active');
+                } else {
+                    // On desktop, ensure the dropdown is visible
+                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                    if (dropdownMenu) {
+                        dropdownMenu.style.opacity = '1';
+                        dropdownMenu.style.visibility = 'visible';
+                        dropdownMenu.style.transform = 'translateY(0)';
+                    }
+                }
+            }
+        });
+        
+        // Prevent default navigation
+        return false;
     }
 
     // Search functionality
