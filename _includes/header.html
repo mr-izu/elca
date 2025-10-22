@@ -30,133 +30,96 @@
 
                 <!-- Navigation Menu -->
                 <ul class="nav-menu" id="navMenu">
-                    {% comment %} Simple logic: Only show breadcrumb if we're specifically in a dropdown page {% endcomment %}
-                    {% assign current_dropdown_parent = nil %}
-                    {% assign current_dropdown_items = nil %}
+                    {% comment %} 
+                    NEW NAVIGATION SYSTEM:
+                    - Show main navigation when on home or when not in a section
+                    - Show section navigation when inside a section directory
+                    {% endcomment %}
                     
-                    {% comment %} Check if current page is in any dropdown {% endcomment %}
-                    {% for section in site.navigation %}
-                        {% if section.dropdown %}
-                            {% for item in section.dropdown %}
-                                {% assign item_url = item.url | relative_url %}
-                                {% if page.url == item_url %}
-                                    {% assign current_dropdown_parent = section %}
-                                    {% assign current_dropdown_items = section.dropdown %}
-                                    {% break %}
-                                {% endif %}
-                                
-                                {% comment %} Check nested dropdowns {% endcomment %}
-                                {% if item.dropdown %}
-                                    {% for subitem in item.dropdown %}
-                                        {% assign subitem_url = subitem.url | relative_url %}
-                                        {% if page.url == subitem_url %}
-                                            {% assign current_dropdown_parent = item %}
-                                            {% assign current_dropdown_items = item.dropdown %}
-                                            {% assign grandparent_section = section %}
-                                            {% break %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                        {% if current_dropdown_parent %}{% break %}{% endif %}
-                    {% endfor %}
+                    {% comment %} Check if we're in a section directory {% endcomment %}
+                    {% assign current_section = nil %}
+                    {% assign current_section_pages = nil %}
+                    
+                    {% comment %} Get current directory path (first segment after site.baseurl) {% endcomment %}
+                    {% assign path_segments = page.url | split: '/' %}
+                    {% if path_segments.size > 2 and path_segments[1] != '' %}
+                        {% assign current_dir = path_segments[1] %}
+                        
+                        {% comment %} Find if this directory matches any navigation section {% endcomment %}
+                        {% for section in site.navigation %}
+                            {% if section[1] %}
+                                {% comment %} Section with dropdown {% endcomment %}
+                                {% for item in section[1] %}
+                                    {% assign item_url = item.url | relative_url %}
+                                    {% assign item_path_segments = item_url | split: '/' %}
+                                    {% if item_path_segments.size > 2 and item_path_segments[1] == current_dir %}
+                                        {% assign current_section = section %}
+                                        {% assign current_section_pages = section[1] %}
+                                        {% break %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if current_section %}{% break %}{% endif %}
+                        {% endfor %}
+                    {% endif %}
 
-                    {% comment %} Show breadcrumb navigation if we're in a dropdown page {% endcomment %}
-                    {% if current_dropdown_parent %}
+                    {% comment %} Show section navigation if we're in a section directory {% endcomment %}
+                    {% if current_section %}
+                        <!-- Breadcrumb back to main navigation -->
                         <li class="nav-item breadcrumb-item">
-                            <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showFullNavigation()">
-                                ← {{ current_dropdown_parent.title }}
+                            <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showMainNavigation()">
+                                <svg class="back-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                                </svg>
+                                Back to Main
                             </a>
                         </li>
                         
-                        {% comment %} Show the dropdown items {% endcomment %}
-                        {% for item in current_dropdown_items %}
-                            {% if item.dropdown %}
-                                {% comment %} This is a nested dropdown section {% endcomment %}
-                                {% for subitem in item.dropdown %}
-                                    {% assign subitem_url = subitem.url | relative_url %}
-                                    <li class="nav-item">
-                                        <a href="{{ subitem_url }}" class="nav-link {% if page.url == subitem_url %}active{% endif %}">
-                                            {{ subitem.title }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            {% else %}
-                                {% comment %} Regular dropdown item {% endcomment %}
-                                {% assign item_url = item.url | relative_url %}
-                                <li class="nav-item">
-                                    <a href="{{ item_url }}" class="nav-link {% if page.url == item_url %}active{% endif %}">
-                                        {{ item.title }}
-                                    </a>
-                                </li>
-                            {% endif %}
+                        <!-- Section title -->
+                        <li class="nav-item section-title">
+                            <span class="nav-link section-title-link">
+                                {{ current_section[0] }}
+                            </span>
+                        </li>
+                        
+                        <!-- Section pages -->
+                        {% for item in current_section_pages %}
+                            {% assign item_url = item.url | relative_url %}
+                            <li class="nav-item">
+                                <a href="{{ item_url }}" class="nav-link {% if page.url == item_url %}active{% endif %}">
+                                    {{ item[0] }}
+                                </a>
+                            </li>
                         {% endfor %}
                     
                     {% else %}
-                        {% comment %} Show full navigation {% endcomment %}
-                        {% for link in site.navigation %}
-                            {% assign link_url = link.url | relative_url %}
-                            {% assign page_url = page.url | relative_url %}
-                            
-                            {% if link.dropdown %}
-                                <li class="nav-item dropdown">
-                                    {% comment %} Check if any dropdown item is active {% endcomment %}
-                                    {% assign dropdown_active = false %}
-                                    {% for item in link.dropdown %}
-                                        {% assign item_url = item.url | relative_url %}
-                                        {% if page_url == item_url %}
-                                            {% assign dropdown_active = true %}
-                                        {% endif %}
-                                        {% if item.dropdown %}
-                                            {% for subitem in item.dropdown %}
-                                                {% assign subitem_url = subitem.url | relative_url %}
-                                                {% if page_url == subitem_url %}
-                                                    {% assign dropdown_active = true %}
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    
-                                    <a href="javascript:void(0)" class="nav-link {% if dropdown_active %}active{% endif %}">
-                                        {{ link.title }} <span class="dropdown-arrow">▼</span>
+                        {% comment %} Show main navigation {% endcomment %}
+                        {% for section in site.navigation %}
+                            {% if section.url %}
+                                {% comment %} Single page item (like Home) {% endcomment %}
+                                {% assign section_url = section.url | relative_url %}
+                                <li class="nav-item">
+                                    <a href="{{ section_url }}" class="nav-link {% if page.url == section_url %}active{% endif %}">
+                                        {{ section[0] }}
                                     </a>
-                                    <ul class="dropdown-menu">
-                                        {% for item in link.dropdown %}
-                                            {% if item.dropdown %}
-                                                {% comment %} Nested dropdown (like BCA > Sinan) {% endcomment %}
-                                                <li class="dropdown-nested">
-                                                    <a href="javascript:void(0)" class="dropdown-nested-toggle">
-                                                        {{ item.title }} <span class="dropdown-arrow">▶</span>
-                                                    </a>
-                                                    <ul class="dropdown-submenu">
-                                                        {% for subitem in item.dropdown %}
-                                                            {% assign subitem_url = subitem.url | relative_url %}
-                                                            <li>
-                                                                <a href="{{ subitem_url }}" class="{% if page_url == subitem_url %}dropdown-active{% endif %}">
-                                                                    {{ subitem.title }}
-                                                                </a>
-                                                            </li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </li>
-                                            {% else %}
-                                                {% comment %} Regular dropdown item {% endcomment %}
-                                                {% assign item_url = item.url | relative_url %}
-                                                <li>
-                                                    <a href="{{ item_url }}" class="{% if page_url == item_url %}dropdown-active{% endif %}">
-                                                        {{ item.title }}
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </ul>
                                 </li>
                             {% else %}
-                                <li class="nav-item">
-                                    <a href="{{ link_url }}" class="nav-link {% if page_url == link_url %}active{% endif %}">
-                                        {{ link.title }}
+                                {% comment %} Section with dropdown {% endcomment %}
+                                {% assign section_first_url = section[1][0].url | relative_url %}
+                                <li class="nav-item dropdown">
+                                    <a href="{{ section_first_url }}" class="nav-link">
+                                        {{ section[0] }} <span class="dropdown-arrow">▼</span>
                                     </a>
+                                    <ul class="dropdown-menu">
+                                        {% for item in section[1] %}
+                                            {% assign item_url = item.url | relative_url %}
+                                            <li>
+                                                <a href="{{ item_url }}" class="{% if page.url == item_url %}dropdown-active{% endif %}">
+                                                    {{ item[0] }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
                                 </li>
                             {% endif %}
                         {% endfor %}
@@ -196,19 +159,19 @@
         </div>
     </div>
 </header>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Simple function to show full navigation
-    function showFullNavigation() {
-        // Use sessionStorage to remember we want full nav
-        sessionStorage.setItem('forceFullNavigation', 'true');
-        window.location.reload();
+    // Navigation state management
+    function showMainNavigation() {
+        sessionStorage.setItem('forceMainNavigation', 'true');
+        // Redirect to home to show main navigation
+        window.location.href = '{{ "/" | relative_url }}';
     }
 
-    // Check if we should force full navigation
-    if (sessionStorage.getItem('forceFullNavigation') === 'true') {
-        sessionStorage.removeItem('forceFullNavigation');
-        // The page will reload and show full navigation
+    // Check if we should force main navigation
+    if (sessionStorage.getItem('forceMainNavigation') === 'true') {
+        sessionStorage.removeItem('forceMainNavigation');
     }
 
     // Fix for active state - ensure only current page is active
@@ -435,7 +398,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
     const dropdowns = document.querySelectorAll('.dropdown');
-    const nestedDropdowns = document.querySelectorAll('.dropdown-nested');
     
     if (hamburger) {
         hamburger.addEventListener('click', function() {
@@ -463,12 +425,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropdownMenu.style.opacity = '0';
                 dropdownMenu.style.visibility = 'hidden';
                 dropdownMenu.style.transform = 'translateY(10px)';
-                
-                // Close any open nested dropdowns
-                const openNested = dropdown.querySelector('.dropdown-submenu.active');
-                if (openNested) {
-                    openNested.classList.remove('active');
-                }
             }
         });
         
@@ -482,35 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         otherDropdown.classList.remove('active');
                     }
                 });
-            }
-        });
-    });
-    
-    // Handle nested dropdowns
-    nestedDropdowns.forEach(nestedDropdown => {
-        const toggle = nestedDropdown.querySelector('.dropdown-nested-toggle');
-        const submenu = nestedDropdown.querySelector('.dropdown-submenu');
-        
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (window.innerWidth <= 768) {
-                submenu.classList.toggle('active');
-            } else {
-                const isActive = submenu.classList.contains('active');
-                
-                nestedDropdowns.forEach(otherNested => {
-                    if (otherNested !== nestedDropdown) {
-                        otherNested.querySelector('.dropdown-submenu').classList.remove('active');
-                    }
-                });
-                
-                if (!isActive) {
-                    submenu.classList.add('active');
-                } else {
-                    submenu.classList.remove('active');
-                }
             }
         });
     });
