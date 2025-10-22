@@ -29,81 +29,182 @@
                 </button>
 
                 <!-- Navigation Menu with Breadcrumbs -->
-                <ul class="nav-menu">
-                    {% comment %} Determine if we're in a dropdown section and which one {% endcomment %}
-                    {% assign current_dropdown = nil %}
+                <ul class="nav-menu" id="navMenu">
+                    {% comment %} 
+                    Determine current page location in navigation hierarchy
+                    This builds a breadcrumb trail for the current page
+                    {% endcomment %}
+                    
+                    {% assign breadcrumb_trail = "" | split: "," %}
+                    {% assign current_parent = nil %}
+                    {% assign current_grandparent = nil %}
+                    
+                    {% comment %} First pass: Find the current page's location in the hierarchy {% endcomment %}
                     {% for link in site.navigation %}
                         {% if link.dropdown %}
+                            {% comment %} Check first level dropdown {% endcomment %}
                             {% for sublink in link.dropdown %}
-                                {% assign sublink_url = sublink.url | relative_url %}
-                                {% if page.url == sublink_url or page.url contains sublink.url %}
-                                    {% assign current_dropdown = link %}
+                                {% if sublink.dropdown %}
+                                    {% comment %} Check second level dropdown {% endcomment %}
+                                    {% for subsublink in sublink.dropdown %}
+                                        {% assign subsublink_url = subsublink.url | relative_url %}
+                                        {% if page.url == subsublink_url %}
+                                            {% assign breadcrumb_trail = breadcrumb_trail | push: link %}
+                                            {% assign breadcrumb_trail = breadcrumb_trail | push: sublink %}
+                                            {% assign current_parent = sublink %}
+                                            {% assign current_grandparent = link %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% assign sublink_url = sublink.url | relative_url %}
+                                    {% if page.url == sublink_url %}
+                                        {% assign breadcrumb_trail = breadcrumb_trail | push: link %}
+                                        {% assign current_parent = link %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% comment %} Check regular links {% endcomment %}
+                            {% assign link_url = link.url | relative_url %}
+                            {% if page.url == link_url %}
+                                {% assign breadcrumb_trail = breadcrumb_trail | push: link %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% comment %} 
+                    Display logic:
+                    - If we're in a nested page (2+ levels deep), show breadcrumb navigation
+                    - Otherwise show full navigation
+                    {% endcomment %}
+                    
+                    {% if breadcrumb_trail.size >= 2 %}
+                        {% comment %} We're in a nested page - show breadcrumb navigation {% endcomment %}
+                        
+                        {% if breadcrumb_trail.size == 3 %}
+                            {% comment %} 3 levels deep: BCom > Fina > Assignment {% endcomment %}
+                            {% assign grandparent = breadcrumb_trail[0] %}
+                            {% assign parent = breadcrumb_trail[1] %}
+                            
+                            <li class="nav-item breadcrumb-item">
+                                <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showParentNavigation('{{ parent.title }}')">
+                                    ← {{ parent.title }}
+                                </a>
+                            </li>
+                            
+                            {% comment %} Show current level items {% endcomment %}
+                            {% for link in site.navigation %}
+                                {% if link.title == grandparent.title and link.dropdown %}
+                                    {% for sublink in link.dropdown %}
+                                        {% if sublink.title == parent.title and sublink.dropdown %}
+                                            {% for subsublink in sublink.dropdown %}
+                                                {% assign subsublink_url = subsublink.url | relative_url %}
+                                                <li class="nav-item">
+                                                    <a href="{{ subsublink_url }}" class="nav-link {% if page.url == subsublink_url %}active{% endif %}">
+                                                        {{ subsublink.title }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                        {% elsif breadcrumb_trail.size == 2 %}
+                            {% comment %} 2 levels deep: Adnan > Assignment {% endcomment %}
+                            {% assign parent = breadcrumb_trail[0] %}
+                            
+                            <li class="nav-item breadcrumb-item">
+                                <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showMainNavigation()">
+                                    ← {{ parent.title }}
+                                </a>
+                            </li>
+                            
+                            {% comment %} Show current level items {% endcomment %}
+                            {% for link in site.navigation %}
+                                {% if link.title == parent.title and link.dropdown %}
+                                    {% for sublink in link.dropdown %}
+                                        {% assign sublink_url = sublink.url | relative_url %}
+                                        <li class="nav-item">
+                                            <a href="{{ sublink_url }}" class="nav-link {% if page.url == sublink_url %}active{% endif %}">
+                                                {{ sublink.title }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
                                 {% endif %}
                             {% endfor %}
                         {% endif %}
-                    {% endfor %}
-
-                    {% comment %} Show breadcrumb if in dropdown section {% endcomment %}
-                    {% if current_dropdown %}
-                    <li class="nav-item breadcrumb-item">
-                        <a href="javascript:void(0)" class="nav-link breadcrumb-link" onclick="showDropdownSection('{{ current_dropdown.title }}')">
-                            ← {{ current_dropdown.title }}
-                        </a>
-                    </li>
-                    
-                    {% comment %} Show only the current dropdown's items {% endcomment %}
-                    {% for link in site.navigation %}
-                        {% if link.title == current_dropdown.title %}
-                            {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            <li class="nav-item">
-                                <a href="{{ sublink_url }}" class="nav-link {% if page.url == sublink_url %}active{% endif %}">
-                                    {{ sublink.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
-
+                        
                     {% else %}
-                    {% comment %} Show full navigation when not in dropdown section {% endcomment %}
-                    {% for link in site.navigation %}
-                    {% assign link_url = link.url | relative_url %}
-                    {% assign page_url = page.url | relative_url %}
-                    
-                    {% if link.dropdown %}
-                    <li class="nav-item dropdown">
-                        {% comment %} Check if any dropdown item is active {% endcomment %}
-                        {% assign dropdown_active = false %}
-                        {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            {% if page_url == sublink_url %}
-                                {% assign dropdown_active = true %}
+                        {% comment %} Show full navigation (home page or top-level pages) {% endcomment %}
+                        {% for link in site.navigation %}
+                            {% assign link_url = link.url | relative_url %}
+                            {% assign page_url = page.url | relative_url %}
+                            
+                            {% if link.dropdown %}
+                                <li class="nav-item dropdown">
+                                    {% comment %} Check if any dropdown item is active {% endcomment %}
+                                    {% assign dropdown_active = false %}
+                                    {% assign has_nested_dropdown = false %}
+                                    
+                                    {% for sublink in link.dropdown %}
+                                        {% assign sublink_url = sublink.url | relative_url %}
+                                        {% if page_url == sublink_url %}
+                                            {% assign dropdown_active = true %}
+                                        {% endif %}
+                                        {% if sublink.dropdown %}
+                                            {% assign has_nested_dropdown = true %}
+                                            {% for subsublink in sublink.dropdown %}
+                                                {% assign subsublink_url = subsublink.url | relative_url %}
+                                                {% if page_url == subsublink_url %}
+                                                    {% assign dropdown_active = true %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <a href="javascript:void(0)" class="nav-link {% if dropdown_active %}active{% endif %}">
+                                        {{ link.title }} <span class="dropdown-arrow">▼</span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        {% for sublink in link.dropdown %}
+                                            {% if sublink.dropdown %}
+                                                {% comment %} Nested dropdown (like BCA > Sinan) {% endcomment %}
+                                                <li class="dropdown-nested">
+                                                    <a href="javascript:void(0)" class="dropdown-nested-toggle">
+                                                        {{ sublink.title }} <span class="dropdown-arrow">▶</span>
+                                                    </a>
+                                                    <ul class="dropdown-submenu">
+                                                        {% for subsublink in sublink.dropdown %}
+                                                            {% assign subsublink_url = subsublink.url | relative_url %}
+                                                            <li>
+                                                                <a href="{{ subsublink_url }}" class="{% if page_url == subsublink_url %}dropdown-active{% endif %}">
+                                                                    {{ subsublink.title }}
+                                                                </a>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% else %}
+                                                {% comment %} Regular dropdown item {% endcomment %}
+                                                {% assign sublink_url = sublink.url | relative_url %}
+                                                <li>
+                                                    <a href="{{ sublink_url }}" class="{% if page_url == sublink_url %}dropdown-active{% endif %}">
+                                                        {{ sublink.title }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a href="{{ link_url }}" class="nav-link {% if page_url == link_url %}active{% endif %}">
+                                        {{ link.title }}
+                                    </a>
+                                </li>
                             {% endif %}
                         {% endfor %}
-                        
-                        <a href="javascript:void(0)" class="nav-link {% if dropdown_active %}active{% endif %}">
-                            {{ link.title }} <span class="dropdown-arrow">▼</span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            {% for sublink in link.dropdown %}
-                            {% assign sublink_url = sublink.url | relative_url %}
-                            <li>
-                                <a href="{{ sublink_url }}" class="{% if page_url == sublink_url %}dropdown-active{% endif %}">
-                                    {{ sublink.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a href="{{ link_url }}" class="nav-link {% if page_url == link_url %}active{% endif %}">
-                            {{ link.title }}
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% endfor %}
                     {% endif %}
                 </ul>
                 
@@ -142,6 +243,29 @@
 </header>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Navigation state management
+    let currentNavigationState = 'main'; // 'main', 'parent', 'grandparent'
+    let currentParentTitle = '';
+    let currentGrandparentTitle = '';
+
+    // Function to show main navigation
+    function showMainNavigation() {
+        // Reload the page without any breadcrumb state
+        if (window.location.search.includes('nav=')) {
+            window.location.href = window.location.pathname;
+        } else {
+            // Force reload to main navigation
+            window.location.reload();
+        }
+    }
+
+    // Function to show parent navigation
+    function showParentNavigation(parentTitle) {
+        // This will be handled by the server-side logic based on URL
+        // For now, we'll reload to trigger the appropriate breadcrumb level
+        window.location.reload();
+    }
+
     // Fix for active state - ensure only current page is active
     function fixActiveStates() {
         const currentPath = window.location.pathname;
@@ -163,52 +287,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeFound = true;
             }
         });
-    }
-
-    // Function to show dropdown section when breadcrumb is clicked
-    function showDropdownSection(sectionTitle) {
-        // Close mobile menu if open
-        const hamburger = document.querySelector('.hamburger');
-        const navMenu = document.querySelector('.nav-menu');
-        if (hamburger && navMenu && window.innerWidth <= 768) {
-            hamburger.classList.remove('active');
-            navMenu.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        
-        // Remove breadcrumb mode by showing the full navigation
-        const breadcrumbItems = document.querySelectorAll('.breadcrumb-item');
-        breadcrumbItems.forEach(item => {
-            item.style.display = 'none';
-        });
-        
-        // Show all navigation items
-        const allNavItems = document.querySelectorAll('.nav-item');
-        allNavItems.forEach(item => {
-            item.style.display = 'list-item';
-        });
-        
-        // Activate the corresponding dropdown
-        const dropdownLinks = document.querySelectorAll('.dropdown');
-        dropdownLinks.forEach(dropdown => {
-            const link = dropdown.querySelector('.nav-link');
-            if (link.textContent.includes(sectionTitle)) {
-                if (window.innerWidth <= 768) {
-                    dropdown.classList.add('active');
-                } else {
-                    // On desktop, ensure the dropdown is visible
-                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-                    if (dropdownMenu) {
-                        dropdownMenu.style.opacity = '1';
-                        dropdownMenu.style.visibility = 'visible';
-                        dropdownMenu.style.transform = 'translateY(0)';
-                    }
-                }
-            }
-        });
-        
-        // Prevent default navigation
-        return false;
     }
 
     // Search functionality
@@ -421,6 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
     const dropdowns = document.querySelectorAll('.dropdown');
+    const nestedDropdowns = document.querySelectorAll('.dropdown-nested');
     
     if (hamburger) {
         hamburger.addEventListener('click', function() {
@@ -430,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Handle dropdowns
+    // Handle main dropdowns
     dropdowns.forEach(dropdown => {
         const link = dropdown.querySelector('.nav-link');
         const dropdownMenu = dropdown.querySelector('.dropdown-menu');
@@ -448,6 +527,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropdownMenu.style.opacity = '0';
                 dropdownMenu.style.visibility = 'hidden';
                 dropdownMenu.style.transform = 'translateY(10px)';
+                
+                // Close any open nested dropdowns
+                const openNested = dropdown.querySelector('.dropdown-submenu.active');
+                if (openNested) {
+                    openNested.classList.remove('active');
+                }
             }
         });
         
@@ -461,6 +546,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         otherDropdown.classList.remove('active');
                     }
                 });
+            }
+        });
+    });
+    
+    // Handle nested dropdowns
+    nestedDropdowns.forEach(nestedDropdown => {
+        const toggle = nestedDropdown.querySelector('.dropdown-nested-toggle');
+        const submenu = nestedDropdown.querySelector('.dropdown-submenu');
+        
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (window.innerWidth <= 768) {
+                submenu.classList.toggle('active');
+            } else {
+                // On desktop, toggle the submenu
+                const isActive = submenu.classList.contains('active');
+                
+                // Close all other nested dropdowns
+                nestedDropdowns.forEach(otherNested => {
+                    if (otherNested !== nestedDropdown) {
+                        otherNested.querySelector('.dropdown-submenu').classList.remove('active');
+                    }
+                });
+                
+                if (!isActive) {
+                    submenu.classList.add('active');
+                } else {
+                    submenu.classList.remove('active');
+                }
             }
         });
     });
