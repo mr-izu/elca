@@ -36,7 +36,7 @@
                         {% assign item_value = item[1] %}
                         
                         {% if item_value.url %}
-                            <!-- Simple link item -->
+                            <!-- Simple link item (like Home) -->
                             <li class="nav-item">
                                 <a href="{{ item_value.url | relative_url }}" class="nav-link {% if page.url == item_value.url %}active{% endif %}">
                                     {{ item_key }}
@@ -54,33 +54,26 @@
                                 <div class="dropdown-menu" data-dropdown-menu>
                                     {% for nested_item in item_value %}
                                         {% if nested_item.first %}
-                                            <!-- Nested dropdown section -->
-                                            {% assign nested_key = nested_item[0] %}
-                                            {% assign nested_value = nested_item[1] %}
-                                            
-                                            <div class="dropdown-section">
-                                                <div class="dropdown-header">{{ nested_key }}</div>
-                                                {% for sub_item in nested_value %}
-                                                    {% if sub_item.first %}
-                                                        <!-- Third level items -->
-                                                        {% for sub_sub_item in sub_item %}
-                                                            <a href="{{ sub_sub_item[1] | relative_url }}" class="dropdown-link">
-                                                                {{ sub_sub_item[0] }}
+                                            <!-- Nested section (like Calicut -> BEPOLI) -->
+                                            {% for sub_item in nested_item %}
+                                                <div class="dropdown-section">
+                                                    <div class="dropdown-header">{{ sub_item[0] }}</div>
+                                                    {% for link_item in sub_item[1] %}
+                                                        {% for final_link in link_item %}
+                                                            <a href="{{ final_link[1] | relative_url }}" class="dropdown-link">
+                                                                {{ final_link[0] }}
                                                             </a>
                                                         {% endfor %}
-                                                    {% else %}
-                                                        <!-- Second level items -->
-                                                        <a href="{{ sub_item[1] | relative_url }}" class="dropdown-link">
-                                                            {{ sub_item[0] }}
-                                                        </a>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endfor %}
                                         {% else %}
-                                            <!-- Direct links in dropdown -->
-                                            <a href="{{ nested_item[1] | relative_url }}" class="dropdown-link">
-                                                {{ nested_item[0] }}
-                                            </a>
+                                            <!-- Regular dropdown link -->
+                                            {% for link_pair in nested_item %}
+                                                <a href="{{ link_pair[1] | relative_url }}" class="dropdown-link">
+                                                    {{ link_pair[0] }}
+                                                </a>
+                                            {% endfor %}
                                         {% endif %}
                                     {% endfor %}
                                 </div>
@@ -137,26 +130,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Dropdown functionality - DESKTOP: Always show on hover
+    // Dropdown functionality
     const dropdowns = document.querySelectorAll('[data-dropdown]');
     
-    // Initialize desktop behavior
+    // Desktop: Always show dropdowns
     if (window.innerWidth > 768) {
         dropdowns.forEach(dropdown => {
             const menu = dropdown.querySelector('[data-dropdown-menu]');
-            // Show dropdown immediately on desktop
             menu.style.opacity = '1';
             menu.style.visibility = 'visible';
             menu.style.transform = 'translateY(0)';
         });
     }
     
-    // Mobile dropdown functionality
+    // Mobile click functionality
     dropdowns.forEach(dropdown => {
         const button = dropdown.querySelector('[data-dropdown-button]');
         const menu = dropdown.querySelector('[data-dropdown-menu]');
         
-        // Mobile click functionality
         button.addEventListener('click', function(e) {
             if (window.innerWidth <= 768) {
                 e.preventDefault();
@@ -189,12 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.nav-link:not([data-dropdown-button]), .dropdown-link').forEach(link => {
         link.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
-                // Close mobile menu
                 if (hamburger) hamburger.classList.remove('active');
                 if (navMenu) navMenu.classList.remove('active');
                 document.body.style.overflow = '';
                 
-                // Close all dropdowns
                 dropdowns.forEach(dropdown => {
                     const menu = dropdown.querySelector('[data-dropdown-menu]');
                     menu.style.maxHeight = '0';
@@ -204,73 +193,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Search functionality
-    const searchToggle = document.getElementById('searchToggle');
-    const searchOverlay = document.getElementById('searchOverlay');
-    const searchClose = document.getElementById('searchClose');
-    const searchInput = document.getElementById('searchInput');
-    const searchResults = document.getElementById('searchResults');
-    
-    function openSearch() {
-        if (searchOverlay) {
-            searchOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            if (searchInput) searchInput.focus();
-        }
-    }
-    
-    function closeSearch() {
-        if (searchOverlay) {
-            searchOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-            if (searchInput) searchInput.value = '';
-            if (searchResults) searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
-        }
-    }
-    
-    // Event listeners for search
-    if (searchToggle) searchToggle.addEventListener('click', openSearch);
-    if (searchClose) searchClose.addEventListener('click', closeSearch);
-    if (searchInput) {
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeSearch();
-        });
-    }
-    if (searchOverlay) {
-        searchOverlay.addEventListener('click', (e) => {
-            if (e.target === searchOverlay) closeSearch();
-        });
-    }
-    
-    // Theme toggle functionality
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-        const currentTheme = localStorage.getItem('theme') || 
-                            (prefersDarkScheme.matches ? 'dark' : 'light');
-        
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-        
-        themeToggle.addEventListener('click', toggleTheme);
-    }
-    
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768) {
-            // Reset to desktop behavior
+            // Reset to desktop
             if (navMenu) navMenu.classList.remove('active');
             if (hamburger) hamburger.classList.remove('active');
             document.body.style.overflow = '';
             
-            // Show all dropdowns on desktop
             dropdowns.forEach(dropdown => {
                 const menu = dropdown.querySelector('[data-dropdown-menu]');
                 menu.style.opacity = '1';
@@ -278,16 +208,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 menu.style.transform = 'translateY(0)';
                 menu.style.maxHeight = '';
             });
-        } else {
-            // Reset to mobile behavior
-            dropdowns.forEach(dropdown => {
-                const menu = dropdown.querySelector('[data-dropdown-menu]');
-                menu.style.opacity = '0';
-                menu.style.visibility = 'visible';
-                menu.style.transform = 'none';
-                menu.style.maxHeight = '0';
-            });
         }
     });
+
+    // Search functionality
+    const searchToggle = document.getElementById('searchToggle');
+    const searchOverlay = document.getElementById('searchOverlay');
+    const searchClose = document.getElementById('searchClose');
+    
+    function openSearch() {
+        if (searchOverlay) searchOverlay.classList.add('active');
+    }
+    
+    function closeSearch() {
+        if (searchOverlay) searchOverlay.classList.remove('active');
+    }
+    
+    if (searchToggle) searchToggle.addEventListener('click', openSearch);
+    if (searchClose) searchClose.addEventListener('click', closeSearch);
+    
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
 });
 </script>
