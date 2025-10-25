@@ -229,7 +229,7 @@ body {
 }
 
 // ============================
-// NEW PROFESSIONAL NAVIGATION STYLES
+// PROFESSIONAL NAVIGATION STYLES
 // ============================
 
 .nav-menu {
@@ -302,30 +302,6 @@ body {
 
 .dropdown:hover .dropdown-arrow {
     transform: rotate(180deg);
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: var(--popover);
-    color: var(--popover-foreground);
-    min-width: 280px;
-    box-shadow: var(--shadow-lg);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: var(--transition);
-    z-index: 1001;
-    padding: 0.75rem 0;
-}
-
-.dropdown:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
 }
 
 // Dropdown sections and headers
@@ -424,7 +400,39 @@ body {
 }
 
 // ============================
-// RESPONSIVE DESIGN
+// DESKTOP: ALWAYS VISIBLE DROPDOWNS
+// ============================
+
+@media (min-width: 769px) {
+    .dropdown-menu {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(0) !important;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: var(--popover);
+        color: var(--popover-foreground);
+        min-width: 280px;
+        box-shadow: var(--shadow-lg);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border);
+        z-index: 1001;
+        padding: 0.75rem 0;
+    }
+
+    .nav-item.dropdown {
+        position: relative;
+    }
+
+    .dropdown-menu {
+        width: auto;
+        min-width: 280px;
+    }
+}
+
+// ============================
+// MOBILE: CLICK TO SHOW DROPDOWNS
 // ============================
 
 @media (max-width: 768px) {
@@ -467,13 +475,13 @@ body {
     
     .dropdown-menu {
         position: static;
-        opacity: 1;
+        opacity: 0;
         visibility: visible;
         transform: none;
         box-shadow: none;
         background: var(--accent);
         width: 100%;
-        display: none;
+        display: block;
         border: none;
         border-radius: 0;
         margin: 0;
@@ -482,9 +490,8 @@ body {
         overflow: hidden;
         transition: max-height 0.3s ease, opacity 0.3s ease;
     }
-    
+
     .dropdown.active .dropdown-menu {
-        display: block;
         max-height: 500px;
         opacity: 1;
     }
