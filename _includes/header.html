@@ -38,7 +38,7 @@
                         {% if item_value.first %}
                             <!-- This is a dropdown item with nested items -->
                             <li class="nav-item dropdown" data-dropdown>
-                                <button class="nav-link dropdown-toggle" data-dropdown-button>
+                                <button class="nav-link dropdown-toggle" data-dropdown-button type="button">
                                     {{ item_key }}
                                     <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                         <path fill-rule="evenodd" d="M4.646 6.646a.5.5 0 01.708 0L8 9.293l2.646-2.647a.5.5 0 01.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z"/>
@@ -97,30 +97,6 @@
             </nav>
         </div>
     </div>
-
-    <!-- Search Overlay -->
-    <div class="search-overlay" id="searchOverlay">
-        <div class="search-modal">
-            <div class="search-header">
-                <div class="search-input-container">
-                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Search documentation..." autocomplete="off">
-                    <button class="search-close" id="searchClose" aria-label="Close search">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="search-results" id="searchResults">
-                <div class="search-placeholder">
-                    <p>Type here to search</p>
-                </div>
-            </div>
-        </div>
-    </div>
 </header>
 
 <script>
@@ -140,36 +116,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Dropdown functionality
     const dropdowns = document.querySelectorAll('[data-dropdown]');
     
+    // Desktop hover functionality
     dropdowns.forEach(dropdown => {
         const button = dropdown.querySelector('[data-dropdown-button]');
         const menu = dropdown.querySelector('[data-dropdown-menu]');
         
         // Desktop hover
-        dropdown.addEventListener('mouseenter', function() {
-            if (window.innerWidth > 768) {
+        if (window.innerWidth > 768) {
+            dropdown.addEventListener('mouseenter', function() {
                 menu.style.opacity = '1';
                 menu.style.visibility = 'visible';
                 menu.style.transform = 'translateY(0)';
-            }
-        });
-        
-        dropdown.addEventListener('mouseleave', function() {
-            if (window.innerWidth > 768) {
+            });
+            
+            dropdown.addEventListener('mouseleave', function() {
                 menu.style.opacity = '0';
                 menu.style.visibility = 'hidden';
-                menu.style.transform = 'translateY(10px)';
-            }
-        });
+                menu.style.transform = 'translateY(-8px)';
+            });
+        }
         
-        // Mobile click
+        // Mobile click functionality
         button.addEventListener('click', function(e) {
             if (window.innerWidth <= 768) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Close other dropdowns
+                const isActive = dropdown.classList.contains('active');
+                
+                // Close all other dropdowns
                 dropdowns.forEach(otherDropdown => {
                     if (otherDropdown !== dropdown) {
+                        otherDropdown.classList.remove('active');
                         const otherMenu = otherDropdown.querySelector('[data-dropdown-menu]');
                         otherMenu.style.maxHeight = '0';
                         otherMenu.style.opacity = '0';
@@ -177,10 +155,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 // Toggle current dropdown
-                if (menu.style.maxHeight && menu.style.maxHeight !== '0px') {
+                if (isActive) {
+                    dropdown.classList.remove('active');
                     menu.style.maxHeight = '0';
                     menu.style.opacity = '0';
                 } else {
+                    dropdown.classList.add('active');
                     menu.style.maxHeight = menu.scrollHeight + 'px';
                     menu.style.opacity = '1';
                 }
@@ -188,15 +168,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Close dropdowns when clicking outside
+    // Close dropdowns when clicking outside (desktop)
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('[data-dropdown]')) {
-            dropdowns.forEach(dropdown => {
-                const menu = dropdown.querySelector('[data-dropdown-menu]');
-                menu.style.maxHeight = '0';
-                menu.style.opacity = '0';
-            });
+        if (window.innerWidth > 768) {
+            if (!e.target.closest('[data-dropdown]')) {
+                dropdowns.forEach(dropdown => {
+                    const menu = dropdown.querySelector('[data-dropdown-menu]');
+                    menu.style.opacity = '0';
+                    menu.style.visibility = 'hidden';
+                    menu.style.transform = 'translateY(-8px)';
+                });
+            }
         }
+    });
+    
+    // Close mobile menu when clicking on regular links (not dropdown toggles)
+    document.querySelectorAll('.nav-link:not([data-dropdown-button])').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                if (hamburger) hamburger.classList.remove('active');
+                if (navMenu) navMenu.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Close all dropdowns
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                    const menu = dropdown.querySelector('[data-dropdown-menu]');
+                    menu.style.maxHeight = '0';
+                    menu.style.opacity = '0';
+                });
+            }
+        });
     });
     
     // Search functionality
@@ -206,26 +208,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
     
-    let lunrIndex = null;
-    let searchData = {};
-    
     function openSearch() {
-        searchOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        searchInput.focus();
-        if (!lunrIndex) initSearch();
+        if (searchOverlay) {
+            searchOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            if (searchInput) searchInput.focus();
+        }
     }
     
     function closeSearch() {
-        searchOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-        searchInput.value = '';
-        searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
-    }
-    
-    function initSearch() {
-        // Search initialization would go here
-        // This would typically load search-data.json and initialize lunr
+        if (searchOverlay) {
+            searchOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            if (searchInput) searchInput.value = '';
+            if (searchResults) searchResults.innerHTML = '<div class="search-placeholder"><p>Type here to search</p></div>';
+        }
     }
     
     // Event listeners for search
@@ -262,15 +259,21 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.addEventListener('click', toggleTheme);
     }
     
-    // Close mobile menu when clicking on a link
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                if (hamburger) hamburger.classList.remove('active');
-                if (navMenu) navMenu.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        // Reset dropdown states on resize
+        if (window.innerWidth > 768) {
+            if (navMenu) navMenu.classList.remove('active');
+            if (hamburger) hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+                const menu = dropdown.querySelector('[data-dropdown-menu]');
+                menu.style.maxHeight = '';
+                menu.style.opacity = '';
+            });
+        }
     });
 });
 </script>
